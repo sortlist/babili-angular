@@ -1,0 +1,30 @@
+{
+  "bitwise": true,
+  "curly": true,
+  "eqeqeq": true,
+  "forin": true,
+  "futurehostile": true,
+  "latedef": "nofunc",
+  "noarg": true,
+  "nonew": true,
+  "singleGroups": true,
+  "undef": true,
+  "unused": true,
+  "eqnull": true,
+  "expr": true,
+  "plusplus": true,
+  "strict": true,
+
+  "browser": true,
+
+  "globals": {
+    "angular": false,
+    "chai": false,
+    "_": false,
+    "grunt": false,
+    "require": false,
+    "module": false,
+    "io": false
+  },
+  "quotmark": "double"
+}

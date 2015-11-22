@@ -1,0 +1,26 @@
+{
+  "name": "babili",
+  "version": "0.5.0",
+  "authors": [
+    "Spin42"
+  ],
+  "description": "Angular framework for Babili.",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "main": [
+    "./dist/babili.js",
+    "./dist/babili.min.js"
+   ],
+  "dependencies": {
+    "angular":            ">=1.4.4",
+    "angular-resource":   ">=1.4.4",
+    "lodash":             "3.9.3",
+    "angular-cookie":     "4.0.9"
+  }
+}
