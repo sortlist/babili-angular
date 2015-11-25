@@ -15,6 +15,10 @@
         method: "PUT",
         headers: babili.headers()
       },
+      save: {
+        method: "POST",
+        headers: babili.headers()
+      },
       delete: {
         method: "DELETE",
         headers: babili.headers()
