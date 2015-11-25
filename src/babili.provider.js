@@ -1,73 +1,87 @@
 (function () {
   "use strict";
 
-  var module = angular.module("babili", ["ipCookie", "ngResource"]);
-  module.provider("babiliHelper", function () {
+  var apiToken    = null;
+  var pingPromise = null;
+  var module      = angular.module("babili", ["ngResource"]);
+
+  module.provider("babili", function () {
     this.options = {
       apiUrl:            "babili-api",
       socketUrl:         "",
-      cookieName:        "babili_token",
       aliveInterval:     30000,
       fetchUserFunction: null
     };
 
-    this.initialize = function (options) {
+    this.configure = function (options) {
       this.options = _.extend(this.options, options);
+    };
+
+    this.$get = function ($q, $interval, $http, $rootScope) {
       _.forEach(this.options, function (value, key) {
         module.constant(key, value);
       });
-    };
 
-    this.$get = function ($q, $interval, $http, $rootScope, ipCookie) {
-      var pingPromise   = null;
       var aliveInterval = this.options.aliveInterval;
-      var injector      = angular.injector(["babili", "ipCookie"]);
-      var babiliSocket  = injector.get("babiliSocket");
-      // var BabiliRoom    = injector.get("BabiliRoom");
-      // var BabiliMe      = injector.get("BabiliMe");
-
+      var injector      = angular.injector(["babili"]);
       var handleNewMessage = function (babiliUser, scope) {
         return function (message) {
-          var room = babiliUser.roomWithId(message.roomId);
-          if (room !== undefined && room !== null) {
-            scope.$apply(function () {
-              room.messages.push(message);
-            });
-          } else {
-            injector.get("BabiliRoom").get({id: message.roomId}, function (_room) {
-              babiliUser.rooms.push(_room);
-              room = _room;
-            });
-          }
+          babiliUser.roomWithId(message.roomId).then(function (room) {
+            if (room !== undefined && room !== null) {
+              scope.$apply(function () {
+                room.messages.push(message);
+              });
+            } else {
+              injector.get("BabiliRoom").get({id: message.roomId}).$promise.then(function (_room) {
+                babiliUser.rooms.push(_room);
+                room = _room;
+              });
+            }
 
-          if (!babiliUser.hasRoomOpened(room)) {
-            $rootScope.$apply(function () {
-              room.unreadMessageCount = room.unreadMessageCount + 1;
+            babiliUser.hasRoomOpened(room).then(function (isOpen) {
+              if (!isOpen) {
+                $rootScope.$apply(function () {
+                  room.unreadMessageCount = room.unreadMessageCount + 1;
+                });
+              }
             });
-          }
+          });
         };
       };
 
       return {
-        start: function (scope) {
+        headers: function () {
+          var headers = {};
+          headers["x-babili-token"] = apiToken;
+          return headers;
+        },
+        token: function () {
+          return apiToken;
+        },
+        connect: function (scope, token) {
+          apiToken = token;
           var deferred = $q.defer();
-          injector.get("BabiliMe").get(function (babiliUser) {
-            console.log("FIRST GET2");
-            // $http.defaults.headers.common["X-XSRF-BABILI-TOKEN"] = ipCookie("XSRF-BABILI-TOKEN");
-            babiliSocket.initialize(function (err, socket) {
+          injector.get("BabiliMe").get().$promise.then(function (babiliUser) {
+            injector.get("babiliSocket").initialize(function (err, socket) {
               socket.on("new message", handleNewMessage(babiliUser, scope));
             });
-
             var ping = function () {
               injector.get("BabiliAlive").save({});
             };
-
             ping();
-            console.log("FIRST POST");
             pingPromise = $interval(ping, aliveInterval);
             deferred.resolve(babiliUser);
-          }, function (err) {
+          }).catch(function (err) {
             deferred.reject(err);
+          });
+          return deferred.promise;
+        },
+        disconnect: function () {
+          var deferred = $q.defer();
+          apiToken     = null;
+          $interval.cancel(pingPromise);
+          injector.get("babiliSocket").disconnect().then(function () {
+            deferred.resolve();
           });
           return deferred.promise;
         }

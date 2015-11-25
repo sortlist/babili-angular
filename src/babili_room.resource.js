@@ -3,67 +3,54 @@
 
   angular.module("babili")
 
-  .factory("BabiliRoom", function ($resource, $q, apiUrl, ipCookie, BabiliMessage,
-                                   BabiliMembership) {
-    var headers = function () {
-      var head = {
-        "X-XSRF-BABILI-TOKEN": ipCookie("XSRF-BABILI-TOKEN")
-      };
-      console.log("headers", head);
-      return head;
-    };
+  .factory("BabiliRoom", function ($resource, babili, $q, apiUrl, BabiliMessage, BabiliMembership) {
     var BabiliRoom = $resource(apiUrl + "/client/rooms/:id", {
       id: "@id"
     }, {
       get: {
         method: "GET",
-        withCredentials: true,
-        headers: headers()
+        headers: babili.headers()
       },
       update: {
         method: "PUT",
-        withCredentials: true,
-        headers: headers()
+        headers: babili.headers()
       },
       delete: {
         method: "DELETE",
-        withCredentials: true,
-        headers: headers()
+        headers: babili.headers()
       },
       read: {
         url: apiUrl + "/client/rooms/:id/read",
         params: {id: "@id"},
-        withCredentials: true,
         method: "POST",
-        headers: headers()
+        headers: babili.headers()
       },
       open: {
         url: apiUrl + "/client/rooms/:id/open",
         params: {id: "@id"},
-        withCredentials: true,
         method: "POST",
-        headers: headers()
+        headers: babili.headers()
       },
       close: {
         url: apiUrl + "/client/rooms/:id/open",
         params: {id: "@id"},
-        withCredentials: true,
         method: "DELETE",
-        headers: headers()
+        headers: babili.headers()
       }
     });
 
     BabiliRoom.prototype.markAllMessageAsRead = function () {
-      var self = this;
+      var self     = this;
+      var deferred = $q.defer();
       if (self.unreadMessageCount > 0) {
-        BabiliRoom.read({id: this.id}, function () {
+        BabiliRoom.read({id: this.id}).$promise.then(function () {
           self.unreadMessageCount = 0;
+          deferred.resolve(true);
         });
+      } else {
+        deferred.resolve(false);
       }
-    };
-
-    BabiliRoom.prototype.lastMessage = function () {
-      return _.last(this.messages);
+      return deferred.promise;
     };
 
     BabiliRoom.prototype.addUser = function (babiliUser, babiliUserId) {
