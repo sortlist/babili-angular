@@ -3,17 +3,24 @@
 
   angular.module("babili")
 
-  .factory("babiliSocket", function (ipCookie, socketUrl, cookieName) {
+  .factory("babiliSocket", function (babili, socketUrl, $q) {
+    var ioSocket;
     var babiliSocket = {
       initialize: function (callback) {
-        var token     = ipCookie(cookieName);
-        var ioSocket  = io.connect(socketUrl, {
-          "query": "token=" + token
+        ioSocket = io.connect(socketUrl, {
+          "query": "token=" + babili.token()
         });
 
         ioSocket.on("connect", function () {
           callback(null, ioSocket);
         });
+      },
+      disconnect: function () {
+        var deferred = $q.defer();
+        ioSocket.disconnect(function () {
+          deferred.resolve();
+        });
+        return deferred.promise;
       }
     };
 
