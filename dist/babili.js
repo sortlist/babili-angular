@@ -353,16 +353,16 @@
     var BabiliRoom = $resource(apiUrl + "/client/rooms/:id", {
       id: "@id"
     }, {
+      save: {
+        method: "POST",
+        headers: babili.headers()
+      },
       get: {
         method: "GET",
         headers: babili.headers()
       },
       update: {
         method: "PUT",
-        headers: babili.headers()
-      },
-      save: {
-        method: "POST",
         headers: babili.headers()
       },
       delete: {
