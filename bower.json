@@ -1,10 +1,10 @@
 {
   "name": "babili",
-  "version": "0.5.0",
+  "version": "0.7.0",
   "authors": [
     "Spin42"
   ],
-  "description": "Angular framework for Babili.",
+  "description": "AngularJS framework for Babili.",
   "license": "MIT",
   "ignore": [
     "**/.*",
