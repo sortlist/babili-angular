@@ -8,6 +8,7 @@
     var babiliSocket = {
       initialize: function (callback) {
         ioSocket = io.connect(socketUrl, {
+          transports: ['websocket'],
           "query": "token=" + babili.token()
         });
 
