@@ -1,9 +1,11 @@
 (function () {
   "use strict";
 
-  var apiToken    = null;
-  var pingPromise = null;
-  var module      = angular.module("babili", ["ngResource"]);
+  var apiToken          = null;
+  var pingPromise       = null;
+  var module            = angular.module("babili", ["ngResource"]);
+  var babiliUser        = null;
+  var socketInitialized = false;
 
   module.provider("babili", function () {
     this.options = {
@@ -24,7 +26,7 @@
 
       var aliveInterval = this.options.aliveInterval;
       var injector      = angular.injector(["babili"]);
-      var handleNewMessage = function (babiliUser, scope) {
+      var handleNewMessage = function (scope) {
         return function (message) {
           babiliUser.roomWithId(message.roomId).then(function (room) {
             if (room !== undefined && room !== null) {
@@ -59,21 +61,30 @@
           return apiToken;
         },
         connect: function (scope, token) {
-          apiToken = token;
           var deferred = $q.defer();
-          injector.get("BabiliMe").get().$promise.then(function (babiliUser) {
-            injector.get("babiliSocket").initialize(function (err, socket) {
-              socket.on("new message", handleNewMessage(babiliUser, scope));
+          if (babiliUser === undefined || babiliUser === null) {
+            apiToken = token;
+            injector.get("BabiliMe").get().$promise.then(function (_babiliUser) {
+              babiliUser = _babiliUser;
+              injector.get("babiliSocket").initialize(function (err, socket) {
+                if (socketInitialized === false) {
+                  socket.on("new message", handleNewMessage(scope));
+                  socketInitialized = true;
+                }
+              });
+              var ping = function () {
+                injector.get("BabiliAlive").save({});
+              };
+              ping();
+              pingPromise = $interval(ping, aliveInterval);
+              deferred.resolve(babiliUser);
+            }).catch(function (err) {
+              deferred.reject(err);
             });
-            var ping = function () {
-              injector.get("BabiliAlive").save({});
-            };
-            ping();
-            pingPromise = $interval(ping, aliveInterval);
+          } else {
+            console.log("Babili: /!\\ You should call 'babili.connect' only once.");
             deferred.resolve(babiliUser);
-          }).catch(function (err) {
-            deferred.reject(err);
-          });
+          }
           return deferred.promise;
         },
         disconnect: function () {
