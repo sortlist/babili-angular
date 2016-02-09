@@ -85,12 +85,10 @@
           });
           return deferred.promise;
         },
-        update: function (currentBabiliUser, token) {
-          apiToken = token;
-          var deferred = $q.defer();
-          injector.get("BabiliMe").get().$promise.then(function onSuccess(newBabiliUser) {
-            if (currentBabiliUser.rooms.length !== newBabiliUser.rooms.length) {
-              newBabiliUser.rooms.forEach(function(room) {
+        refresh: function (currentBabiliUser) {
+          injector.get("BabiliMe").get().$promise.then(function onSuccess(babiliUser) {
+            if (currentBabiliUser.rooms.length !== babiliUser.rooms.length) {
+              babiliUser.rooms.forEach(function(room) {
                 if (!currentBabiliUser.rooms.some(function hasRoom(userRoom) {
                   return userRoom.id === room.id;
                 })) {
@@ -98,9 +96,7 @@
                 }
               });
             }
-            deferred.resolve();
           });
-          return deferred.promise;
         }
       };
     };
