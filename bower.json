@@ -21,6 +21,6 @@
     "angular":            ">=1.4.4",
     "angular-resource":   ">=1.4.4",
     "lodash":             "3.9.3",
-    "angular-cookie":     "4.0.9"
+    "angular-cookie":     "4.0.10"
   }
 }
