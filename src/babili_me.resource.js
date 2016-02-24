@@ -184,6 +184,30 @@
       return deferred.promise;
     };
 
+    BabiliMe.prototype.deleteMessage = function (message) {
+      var deferred = $q.defer();
+      var self     = this;
+      if (!message) {
+        deferred.resolve(null);
+      } else {
+        BabiliMessage.delete({
+          id: message.id,
+          roomId: message.roomId
+        }).$promise.then(function () {
+          return self.roomWithId(message.roomId).then(function (room) {
+            var index = _.findIndex(room.messages, function(messageToDelete) {
+              return messageToDelete.id === message.id;
+            });
+            room.messages.splice(index, 1);
+            deferred.resolve();
+          });
+        }).catch(function (err) {
+          deferred.reject(err);
+        });
+      }
+      return deferred.promise;
+    };
+
     return BabiliMe;
   });
 }());
