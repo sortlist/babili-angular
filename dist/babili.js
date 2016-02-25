@@ -6,23 +6,23 @@
   var module      = angular.module("babili", ["ngResource"]);
 
   module.provider("babili", function () {
-    this.options = {
-      apiUrl:            "babili-api",
-      socketUrl:         "",
-      aliveInterval:     30000,
-      fetchUserFunction: null
+    var self     = this;
+    self.options = {
+      apiUrl           : "babili-api",
+      socketUrl        : "",
+      aliveInterval    : 30000
     };
 
-    this.configure = function (options) {
-      this.options = _.extend(this.options, options);
+    self.configure = function (options) {
+      self.options = _.extend(self.options, options);
     };
 
-    this.$get = ["$q", "$interval", "$http", "$rootScope", function ($q, $interval, $http, $rootScope) {
-      _.forEach(this.options, function (value, key) {
+    self.$get = function ($q, $interval, $http, $rootScope) {
+      _.forEach(self.options, function (value, key) {
         module.constant(key, value);
       });
 
-      var aliveInterval = this.options.aliveInterval;
+      var aliveInterval = self.options.aliveInterval;
       var injector      = angular.injector(["babili"]);
       var handleNewMessage = function (babiliUser, scope) {
         return function (message) {
@@ -86,7 +86,7 @@
           return deferred.promise;
         }
       };
-    }];
+    };
   });
 }());
 
@@ -95,14 +95,14 @@
 
   angular.module("babili")
 
-  .factory("BabiliAlive", ["$resource", "babili", "apiUrl", function ($resource, babili, apiUrl) {
+  .factory("BabiliAlive", function ($resource, babili, apiUrl) {
     return $resource(apiUrl + "/client/alive", {}, {
       save: {
         method: "POST",
         headers: babili.headers()
       }
     });
-  }]);
+  });
 }());
 
 (function () {
@@ -110,7 +110,7 @@
 
   angular.module("babili")
 
-  .factory("BabiliMe", ["$resource", "$q", "babili", "apiUrl", "BabiliRoom", "BabiliMessage", function ($resource, $q, babili, apiUrl, BabiliRoom, BabiliMessage) {
+  .factory("BabiliMe", function ($resource, $q, babili, apiUrl, BabiliRoom, BabiliMessage) {
 
     var BabiliMe = $resource(apiUrl + "/client/me", {}, {
       get: {
@@ -123,45 +123,46 @@
               return new BabiliRoom(room);
             });
           }
+          transformedResponse.openedRooms = [];
+          if (transformedResponse.openedRoomIds) {
+            transformedResponse.openedRooms = transformedResponse.openedRoomIds.map(function (id) {
+              return _.find(transformedResponse.rooms, function (room) {
+                return room.id === id;
+              });
+            });
+          }
           return transformedResponse;
         }
       }
     });
 
     BabiliMe.prototype.roomWithId = function (id) {
-      var deferred = $q.defer();
       var foundRoom = _.find(this.rooms, function (room) {
         return room.id === id;
       });
-      deferred.resolve(foundRoom);
-      return deferred.promise;
+      return foundRoom;
     };
 
     BabiliMe.prototype.hasRoomOpened = function (room) {
-      var deferred = $q.defer();
-      if (room && room.id) {
-        deferred.resolve(_.includes(this.openedRoomIds, room.id));
-      } else {
-        deferred.reject(new Error("Room need to be defined."));
-      }
-      return deferred.promise;
+      var foundRoom = _.find(this.openedRooms, function (openedRoom) {
+        return room && openedRoom.id === room.id;
+      });
+      return Boolean(foundRoom);
     };
 
     BabiliMe.prototype.openRoom = function (room) {
       var self     = this;
       var deferred = $q.defer();
 
-      self.hasRoomOpened(room).then(function (isOpen) {
-        if (!isOpen) {
-          BabiliRoom.open({id: room.id}).$promise.then(function () {
-            self.openedRoomIds.push(room.id);
-            room.markAllMessageAsRead();
-            deferred.resolve(room);
-          });
-        } else {
-          deferred.resolve();
-        }
-      });
+      if (!self.hasRoomOpened(room)) {
+        BabiliRoom.open({id: room.id}).$promise.then(function () {
+          self.openedRooms.push(room);
+          room.markAllMessageAsRead();
+          deferred.resolve(room);
+        });
+      } else {
+        deferred.resolve();
+      }
 
       return deferred.promise;
     };
@@ -170,18 +171,17 @@
       var self     = this;
       var deferred = $q.defer();
 
-      self.hasRoomOpened(room).then(function (isOpen) {
-        if (isOpen) {
-          BabiliRoom.close({id: room.id}).$promise.then(function () {
-            _.remove(self.openedRoomIds, function (openedRoomId) {
-              return openedRoomId === room.id;
-            });
-            deferred.resolve(room);
+      if (self.hasRoomOpened(room)) {
+        BabiliRoom.close({id: room.id}).$promise.then(function () {
+          _.remove(self.openedRooms, function (openedRoom) {
+            return openedRoom.id === room.id;
           });
-        } else {
-          deferred.resolve();
-        }
-      });
+          deferred.resolve(room);
+        });
+      } else {
+        deferred.resolve();
+      }
+
       return deferred.promise;
     };
 
@@ -194,7 +194,7 @@
     };
 
     BabiliMe.prototype.openRoomAndCloseOthers = function (room) {
-      var self            = this;
+      var self = this;
       var roomsToBeClosed = self.rooms.filter(function (_room) {
         return _room.id !== room.id;
       });
@@ -204,19 +204,7 @@
     };
 
     BabiliMe.prototype.hasOpenedRooms = function () {
-      var deferred = $q.defer();
-      deferred.resolve(!_.isEmpty(this.openedRoomIds));
-      return deferred.promise;
-    };
-
-    BabiliMe.prototype.openedRooms = function () {
-      var self       = this;
-      var deferred   = $q.defer();
-      var foundRooms = _.filter(self.rooms, function (room) {
-        return _.includes(self.openedRoomIds, room.id);
-      });
-      deferred.resolve(foundRooms);
-      return deferred.promise;
+      return !_.isEmpty(this.openedRooms);
     };
 
     BabiliMe.prototype.createRoom = function (name, babiliUserIds) {
@@ -227,14 +215,8 @@
         userIds: babiliUserIds.concat(self.id)
       });
       BabiliRoom.save(room).$promise.then(function (room) {
-        return self.roomWithId(room.id).then(function (foundRoom) {
-          if (foundRoom) {
-            deferred.resolve(foundRoom);
-          } else {
-            self.rooms.push(room);
-            deferred.resolve(room);
-          }
-        });
+        self.rooms.push(room);
+        deferred.resolve(room);
       }).catch(function (err) {
         deferred.reject(err);
       });
@@ -253,14 +235,11 @@
       }).catch(function (err) {
         deferred.reject(err);
       });
-
       return deferred.promise;
     };
 
     BabiliMe.prototype.addUserToRoom = function (room, babiliUserId) {
-      return this.roomWithId(room.id).then(function (room) {
-        return room.addUser(this, babiliUserId);
-      });
+      return room.addUser(this, babiliUserId);
     };
 
     BabiliMe.prototype.sendMessage = function (room, message) {
@@ -274,10 +253,9 @@
         BabiliMessage.save({
           roomId: room.id
         }, message).$promise.then(function (_message) {
-          return self.roomWithId(room.id).then(function (room) {
-            room.messages.push(_message);
-            deferred.resolve(_message);
-          });
+          var foundRoom = self.roomWithId(room.id);
+          foundRoom.messages.push(_message);
+          deferred.resolve(_message);
         }).catch(function (err) {
           deferred.reject(err);
         });
@@ -286,9 +264,7 @@
     };
 
     BabiliMe.prototype.messageSentByMe = function (message) {
-      var deferred = $q.defer();
-      deferred.resolve(message && this.id === message.senderId);
-      return deferred.promise;
+      return message && this.id === message.senderId;
     };
 
     BabiliMe.prototype.deleteMessage = function (message) {
@@ -302,7 +278,7 @@
           roomId: message.roomId
         }).$promise.then(function () {
           return self.roomWithId(message.roomId).then(function (room) {
-            var index = _.findIndex(room.messages, function(messageToDelete) {
+            var index = _.findIndex(room.messages, function (messageToDelete) {
               return messageToDelete.id === message.id;
             });
             room.messages.splice(index, 1);
@@ -316,7 +292,7 @@
     };
 
     return BabiliMe;
-  }]);
+  });
 }());
 
 (function () {
@@ -324,7 +300,7 @@
 
   angular.module("babili")
 
-  .factory("BabiliMembership", ["$resource", "babili", "apiUrl", function ($resource, babili, apiUrl) {
+  .factory("BabiliMembership", function ($resource, babili, apiUrl) {
     return $resource(apiUrl + "/client/rooms/:roomId/memberships/:id", {
       membershipId: "@membershipId",
       id: "@id"
@@ -334,7 +310,7 @@
         headers: babili.headers()
       }
     });
-  }]);
+  });
 }());
 
 (function () {
@@ -342,7 +318,7 @@
 
   angular.module("babili")
 
-  .factory("BabiliMessage", ["$resource", "babili", "apiUrl", function ($resource, babili, apiUrl) {
+  .factory("BabiliMessage", function ($resource, babili, apiUrl) {
     return $resource(apiUrl + "/client/rooms/:roomId/messages/:id", {
       roomId: "@roomId",
       id: "@id"
@@ -365,7 +341,7 @@
         headers: babili.headers()
       }
     });
-  }]);
+  });
 }());
 
 (function () {
@@ -373,7 +349,7 @@
 
   angular.module("babili")
 
-  .factory("BabiliRoom", ["$resource", "babili", "$q", "apiUrl", "BabiliMessage", "BabiliMembership", function ($resource, babili, $q, apiUrl, BabiliMessage, BabiliMembership) {
+  .factory("BabiliRoom", function ($resource, babili, $q, apiUrl, BabiliMessage, BabiliMembership) {
     var BabiliRoom = $resource(apiUrl + "/client/rooms/:id", {
       id: "@id"
     }, {
@@ -459,7 +435,7 @@
     };
 
     return BabiliRoom;
-  }]);
+  });
 }());
 
 (function () {
@@ -467,7 +443,7 @@
 
   angular.module("babili")
 
-  .factory("babiliSocket", ["babili", "socketUrl", "$q", function (babili, socketUrl, $q) {
+  .factory("babiliSocket", function (babili, socketUrl, $q) {
     var ioSocket;
     var babiliSocket = {
       initialize: function (callback) {
@@ -481,13 +457,17 @@
       },
       disconnect: function () {
         var deferred = $q.defer();
-        ioSocket.disconnect(function () {
+        if (ioSocket) {
+          ioSocket.disconnect(function () {
+            deferred.resolve();
+          });
+        } else {
           deferred.resolve();
-        });
+        }
         return deferred.promise;
       }
     };
 
     return babiliSocket;
-  }]);
+  });
 }());
