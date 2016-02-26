@@ -26,26 +26,22 @@
       var injector      = angular.injector(["babili"]);
       var handleNewMessage = function (babiliUser, scope) {
         return function (message) {
-          babiliUser.roomWithId(message.roomId).then(function (room) {
-            if (room !== undefined && room !== null) {
-              scope.$apply(function () {
-                room.messages.push(message);
-              });
-            } else {
-              injector.get("BabiliRoom").get({id: message.roomId}).$promise.then(function (_room) {
-                babiliUser.rooms.push(_room);
-                room = _room;
-              });
-            }
-
-            babiliUser.hasRoomOpened(room).then(function (isOpen) {
-              if (!isOpen) {
-                $rootScope.$apply(function () {
-                  room.unreadMessageCount = room.unreadMessageCount + 1;
-                });
-              }
+          var room = babiliUser.roomWithId(message.roomId);
+          if (room !== undefined && room !== null) {
+            scope.$apply(function () {
+              room.messages.push(message);
             });
-          });
+          } else {
+            injector.get("BabiliRoom").get({id: message.roomId}).$promise.then(function (_room) {
+              babiliUser.rooms.push(_room);
+              room = _room;
+            });
+          }
+          if (!babiliUser.hasRoomOpened(room)) {
+            $rootScope.$apply(function () {
+              room.unreadMessageCount = room.unreadMessageCount + 1;
+            });
+          }
         };
       };
 

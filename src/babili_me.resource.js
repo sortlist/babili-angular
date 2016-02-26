@@ -160,6 +160,14 @@
       return message && this.id === message.senderId;
     };
 
+    BabiliMe.prototype.unreadMessageCount = function () {
+      var count = 0;
+      this.rooms.forEach(function (room) {
+        count = count + room.unreadMessageCount;
+      });
+      return count;
+    };
+
     BabiliMe.prototype.deleteMessage = function (message) {
       var deferred = $q.defer();
       var self     = this;
@@ -170,13 +178,12 @@
           id: message.id,
           roomId: message.roomId
         }).$promise.then(function () {
-          return self.roomWithId(message.roomId).then(function (room) {
-            var index = _.findIndex(room.messages, function (messageToDelete) {
-              return messageToDelete.id === message.id;
-            });
-            room.messages.splice(index, 1);
-            deferred.resolve();
+          var room  = self.roomWithId(message.roomId);
+          var index = _.findIndex(room.messages, function (messageToDelete) {
+            return messageToDelete.id === message.id;
           });
+          room.messages.splice(index, 1);
+          deferred.resolve();
         }).catch(function (err) {
           deferred.reject(err);
         });
