@@ -6,46 +6,42 @@
   var module      = angular.module("babili", ["ngResource"]);
 
   module.provider("babili", function () {
-    this.options = {
-      apiUrl:            "babili-api",
-      socketUrl:         "",
-      aliveInterval:     30000,
-      fetchUserFunction: null
+    var self     = this;
+    self.options = {
+      apiUrl           : "babili-api",
+      socketUrl        : "",
+      aliveInterval    : 30000
     };
 
-    this.configure = function (options) {
-      this.options = _.extend(this.options, options);
+    self.configure = function (options) {
+      self.options = _.extend(self.options, options);
     };
 
-    this.$get = function ($q, $interval, $http, $rootScope) {
-      _.forEach(this.options, function (value, key) {
+    self.$get = function ($q, $interval, $http, $rootScope) {
+      _.forEach(self.options, function (value, key) {
         module.constant(key, value);
       });
 
-      var aliveInterval = this.options.aliveInterval;
+      var aliveInterval = self.options.aliveInterval;
       var injector      = angular.injector(["babili"]);
       var handleNewMessage = function (babiliUser, scope) {
         return function (message) {
-          babiliUser.roomWithId(message.roomId).then(function (room) {
-            if (room !== undefined && room !== null) {
-              scope.$apply(function () {
-                room.messages.push(message);
-              });
-            } else {
-              injector.get("BabiliRoom").get({id: message.roomId}).$promise.then(function (_room) {
-                babiliUser.rooms.push(_room);
-                room = _room;
-              });
-            }
-
-            babiliUser.hasRoomOpened(room).then(function (isOpen) {
-              if (!isOpen) {
-                $rootScope.$apply(function () {
-                  room.unreadMessageCount = room.unreadMessageCount + 1;
-                });
-              }
+          var room = babiliUser.roomWithId(message.roomId);
+          if (room !== undefined && room !== null) {
+            scope.$apply(function () {
+              room.messages.push(message);
             });
-          });
+          } else {
+            injector.get("BabiliRoom").get({id: message.roomId}).$promise.then(function (_room) {
+              babiliUser.rooms.push(_room);
+              room = _room;
+            });
+          }
+          if (!babiliUser.hasRoomOpened(room)) {
+            $rootScope.$apply(function () {
+              room.unreadMessageCount = room.unreadMessageCount + 1;
+            });
+          }
         };
       };
 
