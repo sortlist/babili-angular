@@ -17,9 +17,13 @@
       },
       disconnect: function () {
         var deferred = $q.defer();
-        ioSocket.disconnect(function () {
+        if (ioSocket) {
+          ioSocket.disconnect(function () {
+            deferred.resolve();
+          });
+        } else {
           deferred.resolve();
-        });
+        }
         return deferred.promise;
       }
     };

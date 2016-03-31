@@ -1,10 +1,10 @@
 {
   "name": "babili",
-  "version": "0.5.0",
+  "version": "0.7.0",
   "authors": [
     "Spin42"
   ],
-  "description": "Angular framework for Babili.",
+  "description": "AngularJS framework for Babili.",
   "license": "MIT",
   "ignore": [
     "**/.*",
@@ -20,7 +20,6 @@
   "dependencies": {
     "angular":            ">=1.4.4",
     "angular-resource":   ">=1.4.4",
-    "lodash":             "3.9.3",
-    "angular-cookie":     "4.0.9"
+    "lodash":             "3.9.3"
   }
 }
