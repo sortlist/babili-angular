@@ -11,8 +11,14 @@
         method: "POST",
         headers: babili.headers()
       },
+      query: {
+        method: "GET",
+        headers: babili.headers(),
+        isArray: true
+      },
       get: {
         method: "GET",
+        params: {id: "@id"},
         headers: babili.headers()
       },
       update: {
@@ -73,6 +79,17 @@
       });
 
       return deferred.promise;
+    };
+
+    BabiliRoom.prototype.fetchMoreMessages = function () {
+      var self       = this;
+      var attributes = {
+        roomId: self.id,
+        firstSeenMessageId: self.messages[0].id
+      };
+      return BabiliMessage.query(attributes).$promise.then(function (messages) {
+        self.messages.unshift.apply(self.messages, messages);
+      });
     };
 
     BabiliRoom.prototype.update = function () {
