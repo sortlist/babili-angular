@@ -16,12 +16,14 @@
     };
 
     self.configure = function (options) {
-      self.options = _.extend(self.options, options);
+      Object.keys(options).forEach(function (key) {
+        self.options[key] = options[key];
+      });
     };
 
     self.$get = function ($q, $interval, $http, $rootScope) {
-      _.forEach(self.options, function (value, key) {
-        module.constant(key, value);
+      Object.keys(self.options).forEach(function (key) {
+        module.constant(key, self.options[key]);
       });
 
       var aliveInterval = self.options.aliveInterval;

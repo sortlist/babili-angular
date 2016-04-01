@@ -3,7 +3,7 @@
 
   angular.module("babili")
 
-  .factory("BabiliMe", function ($resource, $q, babili, apiUrl, BabiliRoom, BabiliMessage) {
+  .factory("BabiliMe", function ($resource, $q, babili, apiUrl, BabiliRoom, BabiliMessage, babiliUtils) {
 
     var BabiliMe = $resource(apiUrl + "/client/me", {}, {
       get: {
@@ -51,24 +51,21 @@
     };
 
     BabiliMe.prototype.roomWithId = function (id) {
-      var foundRoom = _.find(this.rooms, function (room) {
+      var foundRoomIndex = babiliUtils.findIndex(this.rooms, function (room) {
         return room.id === id;
       });
-      return foundRoom;
+      return this.rooms[foundRoomIndex];
     };
 
     BabiliMe.prototype.openedRoomWithId = function (id) {
-      var foundRoom = _.find(this.openedRooms, function (room) {
+      var foundRoomIndex = babiliUtils.findIndex(this.openedRooms, function (room) {
         return room.id === id;
       });
-      return foundRoom;
+      return this.openedRooms[foundRoomIndex];
     };
 
     BabiliMe.prototype.hasRoomOpened = function (room) {
-      var foundRoom = _.find(this.openedRooms, function (openedRoom) {
-        return room && openedRoom.id === room.id;
-      });
-      return Boolean(foundRoom);
+      return Boolean(this.openedRoomWithId(room.id));
     };
 
     BabiliMe.prototype.addRoom = function (room) {
@@ -104,12 +101,14 @@
 
       if (self.hasRoomOpened(room)) {
         BabiliRoom.close({id: room.id}).$promise.then(function () {
-          _.remove(self.openedRooms, function (openedRoom) {
+          var roomToRemoveIndex = babiliUtils.findIndex(self.openedRooms, function (openedRoom) {
             return openedRoom.id === room.id;
           });
+          if (roomToRemoveIndex > -1) {
+            self.openedRooms.splice(roomToRemoveIndex, 1);
+          }
           deferred.resolve(room);
         });
-        console.log("CLOSE", room.id);
       } else {
         deferred.resolve();
       }
@@ -127,7 +126,6 @@
     BabiliMe.prototype.openRoomAndCloseOthers = function (room) {
       var self = this;
       var roomsToBeClosed = self.openedRooms.filter(function (_room) {
-        console.log(_room.id !== room.id);
         return _room.id !== room.id;
       });
       console.log(roomsToBeClosed);
@@ -137,7 +135,7 @@
     };
 
     BabiliMe.prototype.hasOpenedRooms = function () {
-      return !_.isEmpty(this.openedRooms);
+      return this.openedRooms.length > 0;
     };
 
     BabiliMe.prototype.createRoom = function (name, babiliUserIds) {
@@ -155,7 +153,7 @@
     BabiliMe.prototype.updateRoomName = function (room) {
       var self = this;
       return room.update().then(function (_room) {
-        var index = _.findIndex(self.rooms, function (__room) {
+        var index = babiliUtils.findIndex(self.rooms, function (__room) {
           return room.id === __room.id;
         });
         self.rooms[index].name = _room.name;
@@ -211,7 +209,7 @@
           roomId: message.roomId
         }).$promise.then(function () {
           var room  = self.roomWithId(message.roomId);
-          var index = _.findIndex(room.messages, function (messageToDelete) {
+          var index = babiliUtils.findIndex(room.messages, function (messageToDelete) {
             return messageToDelete.id === message.id;
           });
           room.messages.splice(index, 1);
