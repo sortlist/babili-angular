@@ -33,7 +33,8 @@
             scope.$apply(function () {
               room.messages.push(message);
               if (!babiliUser.hasRoomOpened(room)) {
-                room.unreadMessageCount = room.unreadMessageCount + 1;
+                room.unreadMessageCount       = room.unreadMessageCount + 1;
+                babiliUser.unreadMessageCount = babiliUser.unreadMessageCount + 1;
               }
             });
           } else {
@@ -41,9 +42,10 @@
               babiliUser.addRoom(_room);
               room = _room;
               if (!babiliUser.hasRoomOpened(room)) {
-                $rootScope.$apply(function () {
-                  room.unreadMessageCount = room.unreadMessageCount + 1;
-                });
+                scope.$apply(function () {
+                room.unreadMessageCount       = room.unreadMessageCount + 1;
+                babiliUser.unreadMessageCount = babiliUser.unreadMessageCount + 1;
+              });
               }
             });
           }
