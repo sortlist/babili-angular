@@ -53,32 +53,26 @@
       var self     = this;
       var deferred = $q.defer();
       if (self.unreadMessageCount > 0) {
-        BabiliRoom.read({id: this.id}).$promise.then(function () {
+        BabiliRoom.read({id: this.id}).$promise.then(function (response) {
           self.unreadMessageCount = 0;
-          deferred.resolve(true);
+          deferred.resolve(response.readMessageCount);
         });
       } else {
-        deferred.resolve(false);
+        deferred.resolve(0);
       }
       return deferred.promise;
     };
 
-    BabiliRoom.prototype.addUser = function (babiliUser, babiliUserId) {
-      var deferred = $q.defer();
-      var self     = this;
-
-      BabiliMembership.save({
+    BabiliRoom.prototype.addUser = function (userId) {
+      var self = this;
+      return BabiliMembership.save({
         roomId: self.id
       }, {
-        userId: babiliUserId
-      }, function (membership) {
+        userId: userId
+      }).$promise.then(function (membership) {
         self.users.push(membership.user);
-        deferred.resolve();
-      }, function (err) {
-        deferred.reject(err);
+        return membership;
       });
-
-      return deferred.promise;
     };
 
     BabiliRoom.prototype.fetchMoreMessages = function () {
@@ -89,22 +83,16 @@
       };
       return BabiliMessage.query(attributes).$promise.then(function (messages) {
         self.messages.unshift.apply(self.messages, messages);
+        return messages;
       });
     };
 
     BabiliRoom.prototype.update = function () {
-      var deferred   = $q.defer();
       var attributes = {
         name: this.name
       };
-      BabiliRoom.update({id: this.id}, attributes, function (room) {
-        deferred.resolve(room);
-      }, function (err) {
-        deferred.reject(err);
-      });
-      return deferred.promise;
+      return BabiliRoom.update({id: this.id}, attributes).$promise;
     };
-
     return BabiliRoom;
   });
 }());

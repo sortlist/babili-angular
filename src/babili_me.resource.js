@@ -20,22 +20,18 @@
     });
 
     BabiliMe.prototype.fetchRooms = function (options) {
-      var deferred = $q.defer();
-      var self     = this;
-      BabiliRoom.query(options).$promise.then(function (rooms) {
+      var self = this;
+      return BabiliRoom.query(options).$promise.then(function (rooms) {
         rooms.forEach(function (room) {
           if (!self.roomWithId(room.id)) {
             self.addRoom(room);
           }
-          if (room.opened === true && !self.openedRoomWithId(room.id)) {
+          if (room.open === true && !self.openedRoomWithId(room.id)) {
             self.openedRooms.push(room);
           }
         });
-        deferred.resolve();
-      }).catch(function (err) {
-        deferred.reject(err);
+        return rooms;
       });
-      return deferred.promise;
     };
 
     BabiliMe.prototype.fetchOpenedRooms = function () {
@@ -89,7 +85,9 @@
       if (!self.hasRoomOpened(room)) {
         BabiliRoom.open({id: room.id}).$promise.then(function () {
           self.openedRooms.push(room);
-          room.markAllMessageAsRead();
+          room.markAllMessageAsRead().then(function (readMessageCount) {
+            self.unreadMessageCount = Math.max(self.unreadMessageCount - readMessageCount, 0);
+          });
           deferred.resolve(room);
         }).catch(function (err) {
           deferred.reject(err);
@@ -97,7 +95,6 @@
       } else {
         deferred.resolve();
       }
-
       return deferred.promise;
     };
 
@@ -112,10 +109,10 @@
           });
           deferred.resolve(room);
         });
+        console.log("CLOSE", room.id);
       } else {
         deferred.resolve();
       }
-
       return deferred.promise;
     };
 
@@ -129,9 +126,11 @@
 
     BabiliMe.prototype.openRoomAndCloseOthers = function (room) {
       var self = this;
-      var roomsToBeClosed = self.rooms.filter(function (_room) {
+      var roomsToBeClosed = self.openedRooms.filter(function (_room) {
+        console.log(_room.id !== room.id);
         return _room.id !== room.id;
       });
+      console.log(roomsToBeClosed);
       return self.closeRooms(roomsToBeClosed).then(function () {
         return self.openRoom(room);
       });
@@ -142,38 +141,30 @@
     };
 
     BabiliMe.prototype.createRoom = function (name, babiliUserIds) {
-      var self     = this;
-      var deferred = $q.defer();
-      var room     = new BabiliRoom({
+      var self = this;
+      var room = new BabiliRoom({
         name:    name,
         userIds: babiliUserIds.concat(self.id)
       });
-      BabiliRoom.save(room).$promise.then(function (room) {
+      return BabiliRoom.save(room).$promise.then(function (room) {
         self.addRoom(room);
-        deferred.resolve(room);
-      }).catch(function (err) {
-        deferred.reject(err);
+        return room;
       });
-      return deferred.promise;
     };
 
     BabiliMe.prototype.updateRoomName = function (room) {
-      var self     = this;
-      var deferred = $q.defer();
-      room.update().then(function (_room) {
+      var self = this;
+      return room.update().then(function (_room) {
         var index = _.findIndex(self.rooms, function (__room) {
           return room.id === __room.id;
         });
         self.rooms[index].name = _room.name;
-        deferred.resolve();
-      }).catch(function (err) {
-        deferred.reject(err);
+        return _room;
       });
-      return deferred.promise;
     };
 
-    BabiliMe.prototype.addUserToRoom = function (room, babiliUserId) {
-      return room.addUser(this, babiliUserId);
+    BabiliMe.prototype.addUserToRoom = function (room, userId) {
+      return room.addUser(userId);
     };
 
     BabiliMe.prototype.sendMessage = function (room, message) {
@@ -231,7 +222,6 @@
       }
       return deferred.promise;
     };
-
     return BabiliMe;
   });
 }());
