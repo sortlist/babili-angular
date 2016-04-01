@@ -250,7 +250,6 @@
       var roomsToBeClosed = self.openedRooms.filter(function (_room) {
         return _room.id !== room.id;
       });
-      console.log(roomsToBeClosed);
       return self.closeRooms(roomsToBeClosed).then(function () {
         return self.openRoom(room);
       });
@@ -539,7 +538,7 @@
         var value;
         for (var i = 0; i < length; i++) {
           value = array[i];
-          if (predicate.call(value)) {
+          if (predicate(value)) {
             return i;
           }
         }

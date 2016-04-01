@@ -9,7 +9,7 @@
         var value;
         for (var i = 0; i < length; i++) {
           value = array[i];
-          if (predicate.call(value)) {
+          if (predicate(value)) {
             return i;
           }
         }

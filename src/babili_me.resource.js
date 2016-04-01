@@ -128,7 +128,6 @@
       var roomsToBeClosed = self.openedRooms.filter(function (_room) {
         return _room.id !== room.id;
       });
-      console.log(roomsToBeClosed);
       return self.closeRooms(roomsToBeClosed).then(function () {
         return self.openRoom(room);
       });
