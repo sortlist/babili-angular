@@ -4,7 +4,7 @@
   angular.module("babili")
 
   .factory("BabiliMessage", function ($resource, babili, apiUrl) {
-    return $resource(apiUrl + "/client/rooms/:roomId/messages/:id", {
+    return $resource(apiUrl + "/user/rooms/:roomId/messages/:id", {
       roomId: "@roomId",
       id: "@id"
     }, {
@@ -18,7 +18,7 @@
       },
       query: {
         method: "GET",
-        isArray: true,
+        isArray: false,
         headers: babili.headers()
       },
       "delete": {

@@ -57,8 +57,9 @@
 
       return {
         headers: function () {
-          var headers = {};
-          headers["x-babili-token"] = apiToken;
+          var headers = {
+            "Authorization": "Bearer " + apiToken
+          };
           return headers;
         },
         token: function () {
@@ -68,16 +69,16 @@
           var deferred = $q.defer();
           if (babiliUser === undefined || babiliUser === null) {
             apiToken = token;
-            injector.get("BabiliMe").get().$promise.then(function (_babiliUser) {
+            injector.get("BabiliUser").get().$promise.then(function (_babiliUser) {
               babiliUser = _babiliUser;
-              injector.get("babiliSocket").initialize(function (err, socket) {
-                if (socketInitialized === false) {
-                  socket.on("new message", handleNewMessage(scope));
-                  socketInitialized = true;
-                }
-              });
+              // injector.get("babiliSocket").initialize(function (err, socket) {
+              //   if (socketInitialized === false) {
+              //     socket.on("new message", handleNewMessage(scope));
+              //     socketInitialized = true;
+              //   }
+              // });
               var ping = function () {
-                injector.get("BabiliAlive").save({});
+                injector.get("BabiliAlive").update({});
               };
               ping();
               pingPromise = $interval(ping, aliveInterval);
@@ -95,9 +96,9 @@
           var deferred = $q.defer();
           apiToken     = null;
           $interval.cancel(pingPromise);
-          injector.get("babiliSocket").disconnect().then(function () {
-            deferred.resolve();
-          });
+          // injector.get("babiliSocket").disconnect().then(function () {
+          //   deferred.resolve();
+          // });
           return deferred.promise;
         }
       };

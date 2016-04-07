@@ -4,9 +4,9 @@
   angular.module("babili")
 
   .factory("BabiliAlive", function ($resource, babili, apiUrl) {
-    return $resource(apiUrl + "/client/alive", {}, {
-      save: {
-        method: "POST",
+    return $resource(apiUrl + "/user/alive", {}, {
+      update: {
+        method: "PUT",
         headers: babili.headers()
       }
     });

@@ -3,9 +3,9 @@
 
   angular.module("babili")
 
-  .factory("BabiliMe", function ($resource, $q, babili, apiUrl, BabiliRoom, BabiliMessage, babiliUtils) {
+  .factory("BabiliUser", function ($resource, $q, babili, apiUrl, BabiliRoom, BabiliMessage, babiliUtils) {
 
-    var BabiliMe = $resource(apiUrl + "/client/me", {}, {
+    var BabiliUser = $resource(apiUrl + "/user", {}, {
       get: {
         method: "GET",
         headers: babili.headers(),
@@ -19,7 +19,7 @@
       }
     });
 
-    BabiliMe.prototype.fetchRooms = function (options) {
+    BabiliUser.prototype.fetchRooms = function (options) {
       var self = this;
       return BabiliRoom.query(options).$promise.then(function (rooms) {
         rooms.forEach(function (room) {
@@ -34,48 +34,48 @@
       });
     };
 
-    BabiliMe.prototype.fetchOpenedRooms = function () {
+    BabiliUser.prototype.fetchOpenedRooms = function () {
       return this.fetchRooms({onlyOpened: true});
     };
 
-    BabiliMe.prototype.fetchClosedRooms = function () {
+    BabiliUser.prototype.fetchClosedRooms = function () {
       return this.fetchRooms({onlyClosed: true});
     };
 
-    BabiliMe.prototype.fetchMoreRooms = function () {
+    BabiliUser.prototype.fetchMoreRooms = function () {
       return this.fetchRooms({firstSeenRoomId: this.firstSeenRoom.id});
     };
 
-    BabiliMe.prototype.fetchRoomByIds = function (roomIds) {
+    BabiliUser.prototype.fetchRoomByIds = function (roomIds) {
       return this.fetchRooms({"roomIds[]": roomIds});
     };
 
-    BabiliMe.prototype.roomWithId = function (id) {
+    BabiliUser.prototype.roomWithId = function (id) {
       var foundRoomIndex = babiliUtils.findIndex(this.rooms, function (room) {
         return room.id === id;
       });
       return this.rooms[foundRoomIndex];
     };
 
-    BabiliMe.prototype.openedRoomWithId = function (id) {
+    BabiliUser.prototype.openedRoomWithId = function (id) {
       var foundRoomIndex = babiliUtils.findIndex(this.openedRooms, function (room) {
         return room.id === id;
       });
       return this.openedRooms[foundRoomIndex];
     };
 
-    BabiliMe.prototype.hasRoomOpened = function (room) {
+    BabiliUser.prototype.hasRoomOpened = function (room) {
       return Boolean(this.openedRoomWithId(room.id));
     };
 
-    BabiliMe.prototype.addRoom = function (room) {
+    BabiliUser.prototype.addRoom = function (room) {
       if (!this.firstSeenRoom || this.firstSeenRoom.lastActivityAt > room.lastActivityAt) {
         this.firstSeenRoom = room;
       }
       this.rooms.push(room);
     };
 
-    BabiliMe.prototype.openRoom = function (room) {
+    BabiliUser.prototype.openRoom = function (room) {
       var self     = this;
       var deferred = $q.defer();
 
@@ -95,7 +95,7 @@
       return deferred.promise;
     };
 
-    BabiliMe.prototype.closeRoom = function (room) {
+    BabiliUser.prototype.closeRoom = function (room) {
       var self     = this;
       var deferred = $q.defer();
 
@@ -115,7 +115,7 @@
       return deferred.promise;
     };
 
-    BabiliMe.prototype.closeRooms = function (rooms) {
+    BabiliUser.prototype.closeRooms = function (rooms) {
       var self     = this;
       var promises = rooms.map(function (room) {
         return self.closeRoom(room);
@@ -123,7 +123,7 @@
       return $q.all(promises);
     };
 
-    BabiliMe.prototype.openRoomAndCloseOthers = function (room) {
+    BabiliUser.prototype.openRoomAndCloseOthers = function (room) {
       var self = this;
       var roomsToBeClosed = self.openedRooms.filter(function (_room) {
         return _room.id !== room.id;
@@ -133,11 +133,11 @@
       });
     };
 
-    BabiliMe.prototype.hasOpenedRooms = function () {
+    BabiliUser.prototype.hasOpenedRooms = function () {
       return this.openedRooms.length > 0;
     };
 
-    BabiliMe.prototype.createRoom = function (name, babiliUserIds) {
+    BabiliUser.prototype.createRoom = function (name, babiliUserIds) {
       var self = this;
       var room = new BabiliRoom({
         name:    name,
@@ -149,7 +149,7 @@
       });
     };
 
-    BabiliMe.prototype.updateRoomName = function (room) {
+    BabiliUser.prototype.updateRoomName = function (room) {
       var self = this;
       return room.update().then(function (_room) {
         var index = babiliUtils.findIndex(self.rooms, function (__room) {
@@ -160,11 +160,11 @@
       });
     };
 
-    BabiliMe.prototype.addUserToRoom = function (room, userId) {
+    BabiliUser.prototype.addUserToRoom = function (room, userId) {
       return room.addUser(userId);
     };
 
-    BabiliMe.prototype.sendMessage = function (room, message) {
+    BabiliUser.prototype.sendMessage = function (room, message) {
       var deferred = $q.defer();
       var self     = this;
       if (!message || !message.content) {
@@ -185,11 +185,11 @@
       return deferred.promise;
     };
 
-    BabiliMe.prototype.messageSentByMe = function (message) {
+    BabiliUser.prototype.messageSentByMe = function (message) {
       return message && this.id === message.senderId;
     };
 
-    BabiliMe.prototype.unreadMessageCount = function () {
+    BabiliUser.prototype.unreadMessageCount = function () {
       var count = 0;
       this.rooms.forEach(function (room) {
         count = count + room.unreadMessageCount;
@@ -197,7 +197,7 @@
       return count;
     };
 
-    BabiliMe.prototype.deleteMessage = function (message) {
+    BabiliUser.prototype.deleteMessage = function (message) {
       var deferred = $q.defer();
       var self     = this;
       if (!message) {
@@ -219,6 +219,6 @@
       }
       return deferred.promise;
     };
-    return BabiliMe;
+    return BabiliUser;
   });
 }());

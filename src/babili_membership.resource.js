@@ -4,7 +4,7 @@
   angular.module("babili")
 
   .factory("BabiliMembership", function ($resource, babili, apiUrl) {
-    return $resource(apiUrl + "/client/rooms/:roomId/memberships/:id", {
+    return $resource(apiUrl + "/user/rooms/:roomId/memberships/:id", {
       membershipId: "@membershipId",
       id: "@id"
     }, {

@@ -4,7 +4,7 @@
   angular.module("babili")
 
   .factory("BabiliRoom", function ($resource, babili, $q, apiUrl, BabiliMessage, BabiliMembership) {
-    var BabiliRoom = $resource(apiUrl + "/client/rooms/:id", {
+    var BabiliRoom = $resource(apiUrl + "/user/rooms/:id", {
       id: "@id"
     }, {
       save: {
@@ -14,7 +14,7 @@
       query: {
         method: "GET",
         headers: babili.headers(),
-        isArray: true
+        isArray: false
       },
       get: {
         method: "GET",
@@ -30,21 +30,15 @@
         headers: babili.headers()
       },
       read: {
-        url: apiUrl + "/client/rooms/:id/read",
+        url: apiUrl + "/client/rooms/:id/membership/unread-messages",
         params: {id: "@id"},
-        method: "POST",
+        method: "PUT",
         headers: babili.headers()
       },
-      open: {
-        url: apiUrl + "/client/rooms/:id/open",
+      membership: {
+        url: apiUrl + "/client/rooms/:id/membership",
         params: {id: "@id"},
         method: "POST",
-        headers: babili.headers()
-      },
-      close: {
-        url: apiUrl + "/client/rooms/:id/open",
-        params: {id: "@id"},
-        method: "DELETE",
         headers: babili.headers()
       }
     });
