@@ -1,11 +1,10 @@
 (function () {
   "use strict";
 
+  var module            = angular.module("babili", ["ngResource"]);
   var apiToken          = null;
   var pingPromise       = null;
-  var module            = angular.module("babili", ["ngResource"]);
   var babiliUser        = null;
-  var socketInitialized = false;
 
   module.provider("babili", function () {
     var self     = this;
@@ -21,7 +20,7 @@
       });
     };
 
-    self.$get = function ($q, $interval, $http, $rootScope) {
+    self.$get = function ($q, $interval) {
       Object.keys(self.options).forEach(function (key) {
         module.constant(key, self.options[key]);
       });
@@ -40,7 +39,7 @@
               }
             });
           } else {
-            injector.get("BabiliRoom").get({id: message.roomId}).$promise.then(function (_room) {
+            injector.get("BabiliRoom").get({id: message.roomId}).then(function (_room) {
               babiliUser.addRoom(_room);
               room = _room;
               if (!babiliUser.hasRoomOpened(room)) {
@@ -69,7 +68,7 @@
           var deferred = $q.defer();
           if (babiliUser === undefined || babiliUser === null) {
             apiToken = token;
-            injector.get("BabiliUser").get().$promise.then(function (_babiliUser) {
+            injector.get("BabiliMe").get().then(function (_babiliUser) {
               babiliUser = _babiliUser;
               // injector.get("babiliSocket").initialize(function (err, socket) {
               //   if (socketInitialized === false) {
@@ -78,7 +77,7 @@
               //   }
               // });
               var ping = function () {
-                injector.get("BabiliAlive").update({});
+                babiliUser.updateAliveness();
               };
               ping();
               pingPromise = $interval(ping, aliveInterval);
@@ -87,7 +86,7 @@
               deferred.reject(err);
             });
           } else {
-            console.log("Babili: /!\\ You should call 'babili.connect' only once.");
+            console.err("Babili: /!\\ You should call 'babili.connect' only once.");
             deferred.resolve(babiliUser);
           }
           return deferred.promise;

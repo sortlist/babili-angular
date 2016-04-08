@@ -7,7 +7,7 @@
       findIndex: function (array, predicate) {
         var length = array.length;
         var value;
-        for (var i = 0; i < length; i++) {
+        for (var i = 0; i < length; i += 1) {
           value = array[i];
           if (predicate(value)) {
             return i;
