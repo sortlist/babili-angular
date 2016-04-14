@@ -5,7 +5,7 @@
 
   .factory("BabiliUser", function () {
     var BabiliUser = function BabiliUser (data) {
-      this.id                 = data.id;
+      this.id = data.id;
       if (data.attributes) {
         this.status = data.attributes.status;
       }

@@ -182,21 +182,20 @@
       return room.addUser(userId);
     };
 
-    BabiliMe.prototype.sendMessage = function (room, message) {
+    BabiliMe.prototype.sendMessage = function (room, attributes) {
       var deferred = $q.defer();
-      var self     = this;
-      if (!message || !message.content) {
+
+      if (!attributes || !attributes.content) {
         deferred.resolve(null);
       } else if (!room) {
         deferred.reject(new Error("Room need to be defined."));
       } else {
-        BabiliMessage.save({
-          roomId: room.id
-        }, message).then(function (_message) {
-          var foundRoom = self.roomWithId(room.id);
-          foundRoom.messages.push(_message);
-          deferred.resolve(_message);
-        }).catch(function (err) {
+        BabiliMessage.create(room, attributes).then(
+          function (message) {
+            room.addMessage(message);
+            deferred.resolve(room);
+          }
+        ).catch(function (err) {
           deferred.reject(err);
         });
       }

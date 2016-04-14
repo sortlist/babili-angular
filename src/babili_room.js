@@ -7,10 +7,12 @@
 
     var BabiliRoom = function BabiliRoom (data) {
       this.id                 = data.id;
-      this.lastActivityAt     = data.attributes.lastActivityAt;
-      this.name               = data.attributes.name;
-      this.open               = data.attributes.open;
-      this.unreadMessageCount = data.attributes.unreadMessageCount;
+      if (data.attributes) {
+        this.lastActivityAt     = data.attributes.lastActivityAt;
+        this.name               = data.attributes.name;
+        this.open               = data.attributes.open;
+        this.unreadMessageCount = data.attributes.unreadMessageCount;
+      }
       this.users              = [];
       this.messages           = [];
 
@@ -31,6 +33,16 @@
           this.initiator = new BabiliUser(data.relationships.initiator);
         }
       }
+    };
+
+    BabiliRoom.get = function (id) {
+      return $http({
+        method  : "GET",
+        url     : apiUrl + "/user/rooms/" + id,
+        headers : babili.headers()
+      }).then(function (response) {
+        return new BabiliRoom(response.data.data);
+      });
     };
 
     BabiliRoom.query = function (params) {
@@ -144,6 +156,10 @@
       return this.updateMembership({open: false});
     };
 
+    BabiliRoom.prototype.addMessage = function (message) {
+      this.messages.push(message);
+    };
+
     BabiliRoom.prototype.markAllMessageAsRead = function () {
       var self     = this;
       var deferred = $q.defer();
@@ -159,12 +175,11 @@
     };
 
     BabiliRoom.prototype.fetchMoreMessages = function () {
-      var self       = this;
-      var attributes = {
-        roomId             : self.id,
+      var self   = this;
+      var params = {
         firstSeenMessageId : self.messages[0].id
       };
-      return BabiliMessage.query(attributes).then(function (messages) {
+      return BabiliMessage.query(self, params).then(function (messages) {
         self.messages.unshift.apply(self.messages, messages);
         return messages;
       });

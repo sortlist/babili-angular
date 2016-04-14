@@ -5,12 +5,13 @@
   var apiToken          = null;
   var pingPromise       = null;
   var babiliUser        = null;
+  var socketInitialized = false;
 
   module.provider("babili", function () {
     var self     = this;
     self.options = {
-      apiUrl           : "babili-api",
-      socketUrl        : "",
+      apiUrl           : "http://api.babili.local",
+      socketUrl        : "http://pusher.babili.local",
       aliveInterval    : 30000
     };
 
@@ -28,8 +29,10 @@
       var aliveInterval = self.options.aliveInterval;
       var injector      = angular.injector(["babili"]);
       var handleNewMessage = function (scope) {
-        return function (message) {
-          var room = babiliUser.roomWithId(message.roomId);
+        return function (jsonMessage) {
+          var BabiliMessage = injector.get("BabiliMessage");
+          var message = new BabiliMessage(jsonMessage.data);
+          var room    = babiliUser.roomWithId(message.room.id);
           if (room !== undefined && room !== null) {
             scope.$apply(function () {
               room.messages.push(message);
@@ -39,7 +42,7 @@
               }
             });
           } else {
-            injector.get("BabiliRoom").get({id: message.roomId}).then(function (_room) {
+            injector.get("BabiliRoom").get(message.room.id).then(function (_room) {
               babiliUser.addRoom(_room);
               room = _room;
               if (!babiliUser.hasRoomOpened(room)) {
@@ -70,12 +73,12 @@
             apiToken = token;
             injector.get("BabiliMe").get().then(function (_babiliUser) {
               babiliUser = _babiliUser;
-              // injector.get("babiliSocket").initialize(function (err, socket) {
-              //   if (socketInitialized === false) {
-              //     socket.on("new message", handleNewMessage(scope));
-              //     socketInitialized = true;
-              //   }
-              // });
+              injector.get("babiliSocket").initialize(function (err, socket) {
+                if (socketInitialized === false) {
+                  socket.on("new message", handleNewMessage(scope));
+                  socketInitialized = true;
+                }
+              });
               var ping = function () {
                 babiliUser.updateAliveness();
               };
@@ -95,9 +98,9 @@
           var deferred = $q.defer();
           apiToken     = null;
           $interval.cancel(pingPromise);
-          // injector.get("babiliSocket").disconnect().then(function () {
-          //   deferred.resolve();
-          // });
+          injector.get("babiliSocket").disconnect().then(function () {
+            deferred.resolve();
+          });
           return deferred.promise;
         }
       };
