@@ -164,7 +164,12 @@
       var self     = this;
       var deferred = $q.defer();
       if (self.unreadMessageCount > 0) {
-        BabiliRoom.read({id: this.id}).then(function (response) {
+
+        return $http({
+          method  : "PUT",
+          url     : apiUrl + "/user/rooms/" + this.id + "/membership/unread-messages",
+          headers : babili.headers()
+        }).then(function (response) {
           self.unreadMessageCount = 0;
           deferred.resolve(response.readMessageCount);
         });

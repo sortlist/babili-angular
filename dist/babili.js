@@ -316,14 +316,6 @@
       return message && this.id === message.senderId;
     };
 
-    BabiliMe.prototype.unreadMessageCount = function () {
-      var count = 0;
-      this.rooms.forEach(function (room) {
-        count = count + room.unreadMessageCount;
-      });
-      return count;
-    };
-
     BabiliMe.prototype.deleteMessage = function (message) {
       var deferred = $q.defer();
       var self     = this;
@@ -571,7 +563,12 @@
       var self     = this;
       var deferred = $q.defer();
       if (self.unreadMessageCount > 0) {
-        BabiliRoom.read({id: this.id}).then(function (response) {
+
+        return $http({
+          method  : "PUT",
+          url     : apiUrl + "/user/rooms/" + this.id + "/membership/unread-messages",
+          headers : babili.headers()
+        }).then(function (response) {
           self.unreadMessageCount = 0;
           deferred.resolve(response.readMessageCount);
         });

@@ -206,14 +206,6 @@
       return message && this.id === message.senderId;
     };
 
-    BabiliMe.prototype.unreadMessageCount = function () {
-      var count = 0;
-      this.rooms.forEach(function (room) {
-        count = count + room.unreadMessageCount;
-      });
-      return count;
-    };
-
     BabiliMe.prototype.deleteMessage = function (message) {
       var deferred = $q.defer();
       var self     = this;
