@@ -18,7 +18,7 @@
     "./dist/babili.min.js"
    ],
   "dependencies": {
-    "angular":            ">=1.4.4",
-    "angular-resource":   ">=1.4.4"
+    "angular":          ">=1.4.4",
+    "socket.io-client": ">=1.2.0"
   }
 }

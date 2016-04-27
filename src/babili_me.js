@@ -203,7 +203,7 @@
     };
 
     BabiliMe.prototype.messageSentByMe = function (message) {
-      return message && this.id === message.senderId;
+      return message && message.sender && this.id === message.sender.id;
     };
 
     BabiliMe.prototype.deleteMessage = function (message) {
@@ -214,9 +214,9 @@
       } else {
         BabiliMessage.delete({
           id: message.id,
-          roomId: message.roomId
+          roomId: message.room.id
         }).then(function () {
-          var room  = self.roomWithId(message.roomId);
+          var room  = self.roomWithId(message.room.id);
           var index = babiliUtils.findIndex(room.messages, function (messageToDelete) {
             return messageToDelete.id === message.id;
           });

@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  var module            = angular.module("babili", ["ngResource"]);
+  var module            = angular.module("babili", []);
   var apiToken          = null;
   var pingPromise       = null;
   var babiliUser        = null;
@@ -21,7 +21,7 @@
       });
     };
 
-    self.$get = function ($q, $interval) {
+    self.$get = ["$q", "$interval", function ($q, $interval) {
       Object.keys(self.options).forEach(function (key) {
         module.constant(key, self.options[key]);
       });
@@ -47,7 +47,7 @@
               room = _room;
               if (!babiliUser.hasRoomOpened(room)) {
                 scope.$apply(function () {
-                room.unreadMessageCount       = room.unreadMessageCount + 1;
+                room.unreadMessageCount       = room.unreadMessageCount;
                 babiliUser.unreadMessageCount = babiliUser.unreadMessageCount + 1;
               });
               }
@@ -104,7 +104,7 @@
           return deferred.promise;
         }
       };
-    };
+    }];
   });
 }());
 
@@ -113,7 +113,7 @@
 
   angular.module("babili")
 
-  .factory("BabiliMe", function ($http, $q, babili, apiUrl, BabiliRoom, BabiliMessage,
+  .factory("BabiliMe", ["$http", "$q", "babili", "apiUrl", "BabiliRoom", "BabiliMessage", "babiliUtils", function ($http, $q, babili, apiUrl, BabiliRoom, BabiliMessage,
     babiliUtils) {
 
     var BabiliMe = function BabiliMe (data) {
@@ -313,7 +313,7 @@
     };
 
     BabiliMe.prototype.messageSentByMe = function (message) {
-      return message && this.id === message.senderId;
+      return message && message.sender && this.id === message.sender.id;
     };
 
     BabiliMe.prototype.deleteMessage = function (message) {
@@ -324,9 +324,9 @@
       } else {
         BabiliMessage.delete({
           id: message.id,
-          roomId: message.roomId
+          roomId: message.room.id
         }).then(function () {
-          var room  = self.roomWithId(message.roomId);
+          var room  = self.roomWithId(message.room.id);
           var index = babiliUtils.findIndex(room.messages, function (messageToDelete) {
             return messageToDelete.id === message.id;
           });
@@ -339,7 +339,7 @@
       return deferred.promise;
     };
     return BabiliMe;
-  });
+  }]);
 }());
 
 (function () {
@@ -347,7 +347,7 @@
 
   angular.module("babili")
 
-  .factory("BabiliMessage", function ($http, babili, apiUrl, BabiliUser) {
+  .factory("BabiliMessage", ["$http", "babili", "apiUrl", "BabiliUser", function ($http, babili, apiUrl, BabiliUser) {
     var BabiliMessage = function BabiliMessage (data) {
       var BabiliRoom   = angular.injector(["babili"]).get("BabiliRoom");
       this.id          = data.id;
@@ -394,7 +394,7 @@
     };
 
     return BabiliMessage;
-  });
+  }]);
 }());
 
 (function () {
@@ -402,18 +402,19 @@
 
   angular.module("babili")
 
-  .factory("BabiliRoom", function ($http, babili, $q, apiUrl, BabiliUser, BabiliMessage) {
+  .factory("BabiliRoom", ["$http", "babili", "$q", "apiUrl", "BabiliUser", "BabiliMessage", function ($http, babili, $q, apiUrl, BabiliUser, BabiliMessage) {
 
     var BabiliRoom = function BabiliRoom (data) {
-      this.id                 = data.id;
+      this.id       = data.id;
+      this.users    = [];
+      this.messages = [];
+
       if (data.attributes) {
         this.lastActivityAt     = data.attributes.lastActivityAt;
         this.name               = data.attributes.name;
         this.open               = data.attributes.open;
         this.unreadMessageCount = data.attributes.unreadMessageCount;
       }
-      this.users              = [];
-      this.messages           = [];
 
       if (data.relationships) {
         if (data.relationships.users) {
@@ -590,7 +591,7 @@
     };
 
     return BabiliRoom;
-  });
+  }]);
 }());
 
 (function () {
@@ -598,7 +599,7 @@
 
   angular.module("babili")
 
-  .factory("babiliSocket", function (babili, socketUrl, $q) {
+  .factory("babiliSocket", ["babili", "socketUrl", "$q", function (babili, socketUrl, $q) {
     var ioSocket;
     var babiliSocket = {
       initialize: function (callback) {
@@ -624,7 +625,7 @@
     };
 
     return babiliSocket;
-  });
+  }]);
 }());
 
 (function () {

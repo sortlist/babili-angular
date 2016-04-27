@@ -6,15 +6,16 @@
   .factory("BabiliRoom", function ($http, babili, $q, apiUrl, BabiliUser, BabiliMessage) {
 
     var BabiliRoom = function BabiliRoom (data) {
-      this.id                 = data.id;
+      this.id       = data.id;
+      this.users    = [];
+      this.messages = [];
+
       if (data.attributes) {
         this.lastActivityAt     = data.attributes.lastActivityAt;
         this.name               = data.attributes.name;
         this.open               = data.attributes.open;
         this.unreadMessageCount = data.attributes.unreadMessageCount;
       }
-      this.users              = [];
-      this.messages           = [];
 
       if (data.relationships) {
         if (data.relationships.users) {

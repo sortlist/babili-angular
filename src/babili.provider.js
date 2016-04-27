@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  var module            = angular.module("babili", ["ngResource"]);
+  var module            = angular.module("babili", []);
   var apiToken          = null;
   var pingPromise       = null;
   var babiliUser        = null;
@@ -47,7 +47,7 @@
               room = _room;
               if (!babiliUser.hasRoomOpened(room)) {
                 scope.$apply(function () {
-                room.unreadMessageCount       = room.unreadMessageCount + 1;
+                room.unreadMessageCount       = room.unreadMessageCount;
                 babiliUser.unreadMessageCount = babiliUser.unreadMessageCount + 1;
               });
               }
