@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  var module            = angular.module("babili", []);
+  var module            = angular.module("babili", ["ng"]);
   var apiToken          = null;
   var pingPromise       = null;
   var babiliUser        = null;
