@@ -3,7 +3,8 @@
 
   angular.module("babili")
 
-  .factory("BabiliRoom", function ($http, babili, $q, apiUrl, BabiliUser, BabiliMessage) {
+  .factory("BabiliRoom", function ($http, babili, $q, apiUrl, BabiliUser, BabiliMessage,
+    babiliUtils) {
 
     var BabiliRoom = function BabiliRoom (data) {
       this.id       = data.id;
@@ -149,6 +150,13 @@
       });
     };
 
+    BabiliRoom.prototype.messageWithId = function (id) {
+      var foundMessageIndex = babiliUtils.findIndex(this.messages, function (message) {
+        return message.id === id;
+      });
+      return this.messages[foundMessageIndex];
+    };
+
     BabiliRoom.prototype.openMembership = function () {
       return this.updateMembership({open: true});
     };
@@ -158,7 +166,12 @@
     };
 
     BabiliRoom.prototype.addMessage = function (message) {
-      this.messages.push(message);
+      if (this.messageWithId(message.id)) {
+        return false;
+      } else {
+        this.messages.push(message);
+        return true;
+      }
     };
 
     BabiliRoom.prototype.markAllMessageAsRead = function () {

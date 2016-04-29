@@ -8,7 +8,8 @@
     var babiliSocket = {
       initialize: function (callback) {
         ioSocket = io.connect(socketUrl, {
-          "query": "token=" + babili.token()
+          query    : "token=" + babili.token(),
+          forceNew : true
         });
 
         ioSocket.on("connect", function () {
@@ -18,9 +19,9 @@
       disconnect: function () {
         var deferred = $q.defer();
         if (ioSocket) {
-          ioSocket.disconnect(function () {
-            deferred.resolve();
-          });
+          ioSocket.close();
+          ioSocket = undefined;
+          deferred.resolve();
         } else {
           deferred.resolve();
         }

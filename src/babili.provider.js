@@ -31,12 +31,11 @@
       var handleNewMessage = function (scope) {
         return function (jsonMessage) {
           var BabiliMessage = injector.get("BabiliMessage");
-          var message = new BabiliMessage(jsonMessage.data);
-          var room    = babiliUser.roomWithId(message.room.id);
+          var message       = new BabiliMessage(jsonMessage.data);
+          var room          = babiliUser.roomWithId(message.room.id);
           if (room !== undefined && room !== null) {
             scope.$apply(function () {
-              room.messages.push(message);
-              if (!babiliUser.hasRoomOpened(room)) {
+              if (room.addMessage(message) && !babiliUser.hasRoomOpened(room)) {
                 room.unreadMessageCount       = room.unreadMessageCount + 1;
                 babiliUser.unreadMessageCount = babiliUser.unreadMessageCount + 1;
               }
@@ -53,7 +52,6 @@
               }
             });
           }
-
         };
       };
 
@@ -89,7 +87,7 @@
               deferred.reject(err);
             });
           } else {
-            console.err("Babili: /!\\ You should call 'babili.connect' only once.");
+            console.log("Babili: /!\\ You should call 'babili.connect' only once.");
             deferred.resolve(babiliUser);
           }
           return deferred.promise;
@@ -101,6 +99,12 @@
           injector.get("babiliSocket").disconnect().then(function () {
             deferred.resolve();
           });
+
+          apiToken          = null;
+          pingPromise       = null;
+          babiliUser        = null;
+          socketInitialized = false;
+
           return deferred.promise;
         }
       };

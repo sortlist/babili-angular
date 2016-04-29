@@ -193,7 +193,7 @@
         BabiliMessage.create(room, attributes).then(
           function (message) {
             room.addMessage(message);
-            deferred.resolve(room);
+            deferred.resolve(message);
           }
         ).catch(function (err) {
           deferred.reject(err);

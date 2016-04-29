@@ -9,12 +9,11 @@
       this.id          = data.id;
       this.content     = data.attributes.content;
       this.contentType = data.attributes.contentType;
-      this.createdAt   = data.attributes.createdAt;
+      this.createdAt   = new Date(data.attributes.createdAt);
       this.room        = new BabiliRoom(data.relationships.room.data);
       if (data.relationships.sender) {
         this.sender = new BabiliUser(data.relationships.sender.data);
       }
-
     };
 
     BabiliMessage.create = function (room, attributes) {
