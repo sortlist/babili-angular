@@ -206,11 +206,19 @@
       return Boolean(this.openedRoomWithId(room.id));
     };
 
-    BabiliMe.prototype.addRoom = function (room) {
-      if (!this.firstSeenRoom || this.firstSeenRoom.lastActivityAt > room.lastActivityAt) {
-        this.firstSeenRoom = room;
+    BabiliMe.prototype.addRoom = function (newRoom) {
+      if (!this.firstSeenRoom || this.firstSeenRoom.lastActivityAt > newRoom.lastActivityAt) {
+        this.firstSeenRoom = newRoom;
       }
-      this.rooms.push(room);
+
+      var foundRoomIndex = babiliUtils.findIndex(this.rooms, function (room) {
+        return room.id === newRoom.id;
+      });
+      if (foundRoomIndex > -1) {
+        this.rooms[foundRoomIndex] = newRoom;
+      } else {
+        this.rooms.push(newRoom);
+      }
     };
 
     BabiliMe.prototype.openRoom = function (room) {
@@ -274,10 +282,10 @@
       return this.openedRooms.length > 0;
     };
 
-    BabiliMe.prototype.createRoom = function (name, userIds) {
+    BabiliMe.prototype.createRoom = function (name, userIds, options) {
       var self = this;
 
-      return BabiliRoom.create(name, self.id, userIds).then(function (room) {
+      return BabiliRoom.create(name, self.id, userIds, options).then(function (room) {
         self.addRoom(room);
         return room;
       });
@@ -466,10 +474,11 @@
       });
     };
 
-    BabiliRoom.create = function (name, ownerId, userIds) {
+    BabiliRoom.create = function (name, ownerId, userIds, options) {
+      var noDuplicate = options && options.noDuplicate === true;
       return $http({
         method  : "POST",
-        url     : apiUrl + "/user/rooms",
+        url     : apiUrl + "/user/rooms?noDuplicate=" + noDuplicate,
         headers : babili.headers(),
         data    : {
           data: {
@@ -479,8 +488,8 @@
             },
             relationships: {
               users: {
-                data: userIds.concat(ownerId).map(function (userId) {
-                  return {type: "room", id: userId};
+                data: userIds.map(function (userId) {
+                  return {type: "user", id: userId};
                 })
               }
             }

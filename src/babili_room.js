@@ -60,10 +60,11 @@
       });
     };
 
-    BabiliRoom.create = function (name, ownerId, userIds) {
+    BabiliRoom.create = function (name, ownerId, userIds, options) {
+      var noDuplicate = options && options.noDuplicate === true;
       return $http({
         method  : "POST",
-        url     : apiUrl + "/user/rooms",
+        url     : apiUrl + "/user/rooms?noDuplicate=" + noDuplicate,
         headers : babili.headers(),
         data    : {
           data: {
@@ -73,8 +74,8 @@
             },
             relationships: {
               users: {
-                data: userIds.concat(ownerId).map(function (userId) {
-                  return {type: "room", id: userId};
+                data: userIds.map(function (userId) {
+                  return {type: "user", id: userId};
                 })
               }
             }
