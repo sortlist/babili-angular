@@ -25,8 +25,9 @@
           data : {
             type       : "message",
             attributes : {
-              content     : attributes.content,
-              contentType : attributes.contentType
+              content         : attributes.content,
+              contentType     : attributes.contentType,
+              deviceSessionId : attributes.deviceSessionId
             }
           }
         }

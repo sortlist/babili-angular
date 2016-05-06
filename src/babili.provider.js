@@ -71,12 +71,13 @@
             apiToken = token;
             injector.get("BabiliMe").get().then(function (_babiliUser) {
               babiliUser = _babiliUser;
-              injector.get("babiliSocket").initialize(function (err, socket) {
-                if (socketInitialized === false) {
-                  socket.on("new message", handleNewMessage(scope));
-                  socketInitialized = true;
-                }
+              var socket = injector.get("babiliSocket").initialize();
+              socket.on("new message", handleNewMessage(scope));
+              socket.on("connected", function (data) {
+                babiliUser.deviceSessionId = data.deviceSessionId;
               });
+              socketInitialized = true;
+
               var ping = function () {
                 babiliUser.updateAliveness();
               };

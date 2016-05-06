@@ -71,12 +71,13 @@
             apiToken = token;
             injector.get("BabiliMe").get().then(function (_babiliUser) {
               babiliUser = _babiliUser;
-              injector.get("babiliSocket").initialize(function (err, socket) {
-                if (socketInitialized === false) {
-                  socket.on("new message", handleNewMessage(scope));
-                  socketInitialized = true;
-                }
+              var socket = injector.get("babiliSocket").initialize();
+              socket.on("new message", handleNewMessage(scope));
+              socket.on("connected", function (data) {
+                babiliUser.deviceSessionId = data.deviceSessionId;
               });
+              socketInitialized = true;
+
               var ping = function () {
                 babiliUser.updateAliveness();
               };
@@ -297,6 +298,7 @@
     };
 
     BabiliMe.prototype.sendMessage = function (room, attributes) {
+      var self     = this;
       var deferred = $q.defer();
 
       if (!attributes || !attributes.content) {
@@ -304,6 +306,7 @@
       } else if (!room) {
         deferred.reject(new Error("Room need to be defined."));
       } else {
+        attributes.deviceSessionId = self.deviceSessionId;
         BabiliMessage.create(room, attributes).then(
           function (message) {
             room.addMessage(message);
@@ -373,8 +376,9 @@
           data : {
             type       : "message",
             attributes : {
-              content     : attributes.content,
-              contentType : attributes.contentType
+              content         : attributes.content,
+              contentType     : attributes.contentType,
+              deviceSessionId : attributes.deviceSessionId
             }
           }
         }
@@ -568,12 +572,7 @@
     };
 
     BabiliRoom.prototype.addMessage = function (message) {
-      if (this.messageWithId(message.id)) {
-        return false;
-      } else {
-        this.messages.push(message);
-        return true;
-      }
+      this.messages.push(message);
     };
 
     BabiliRoom.prototype.markAllMessageAsRead = function () {
@@ -623,10 +622,7 @@
           query    : "token=" + babili.token(),
           forceNew : true
         });
-
-        ioSocket.on("connect", function () {
-          callback(null, ioSocket);
-        });
+        return ioSocket;
       },
       disconnect: function () {
         var deferred = $q.defer();

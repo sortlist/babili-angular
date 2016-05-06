@@ -183,6 +183,7 @@
     };
 
     BabiliMe.prototype.sendMessage = function (room, attributes) {
+      var self     = this;
       var deferred = $q.defer();
 
       if (!attributes || !attributes.content) {
@@ -190,6 +191,7 @@
       } else if (!room) {
         deferred.reject(new Error("Room need to be defined."));
       } else {
+        attributes.deviceSessionId = self.deviceSessionId;
         BabiliMessage.create(room, attributes).then(
           function (message) {
             room.addMessage(message);

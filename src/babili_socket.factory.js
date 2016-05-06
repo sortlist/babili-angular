@@ -11,10 +11,7 @@
           query    : "token=" + babili.token(),
           forceNew : true
         });
-
-        ioSocket.on("connect", function () {
-          callback(null, ioSocket);
-        });
+        return ioSocket;
       },
       disconnect: function () {
         var deferred = $q.defer();

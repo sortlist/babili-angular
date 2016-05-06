@@ -166,12 +166,7 @@
     };
 
     BabiliRoom.prototype.addMessage = function (message) {
-      if (this.messageWithId(message.id)) {
-        return false;
-      } else {
-        this.messages.push(message);
-        return true;
-      }
+      this.messages.push(message);
     };
 
     BabiliRoom.prototype.markAllMessageAsRead = function () {
