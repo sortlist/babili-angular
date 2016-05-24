@@ -21,7 +21,7 @@
       });
     };
 
-    self.$get = function ($q, $interval) {
+    self.$get = ["$q", "$interval", function ($q, $interval) {
       Object.keys(self.options).forEach(function (key) {
         module.constant(key, self.options[key]);
       });
@@ -109,7 +109,7 @@
           return deferred.promise;
         }
       };
-    };
+    }];
   });
 }());
 
@@ -118,7 +118,7 @@
 
   angular.module("babili")
 
-  .factory("BabiliMe", function ($http, $q, babili, apiUrl, BabiliRoom, BabiliMessage,
+  .factory("BabiliMe", ["$http", "$q", "babili", "apiUrl", "BabiliRoom", "BabiliMessage", "babiliUtils", function ($http, $q, babili, apiUrl, BabiliRoom, BabiliMessage,
     babiliUtils) {
 
     var BabiliMe = function BabiliMe (data) {
@@ -354,7 +354,7 @@
       return deferred.promise;
     };
     return BabiliMe;
-  });
+  }]);
 }());
 
 (function () {
@@ -362,7 +362,7 @@
 
   angular.module("babili")
 
-  .factory("BabiliMessage", function ($http, babili, apiUrl, BabiliUser) {
+  .factory("BabiliMessage", ["$http", "babili", "apiUrl", "BabiliUser", function ($http, babili, apiUrl, BabiliUser) {
     var BabiliMessage = function BabiliMessage (data) {
       var BabiliRoom   = angular.injector(["babili"]).get("BabiliRoom");
       this.id          = data.id;
@@ -409,7 +409,7 @@
     };
 
     return BabiliMessage;
-  });
+  }]);
 }());
 
 (function () {
@@ -417,7 +417,7 @@
 
   angular.module("babili")
 
-  .factory("BabiliRoom", function ($http, babili, $q, apiUrl, BabiliUser, BabiliMessage,
+  .factory("BabiliRoom", ["$http", "babili", "$q", "apiUrl", "BabiliUser", "BabiliMessage", "babiliUtils", function ($http, babili, $q, apiUrl, BabiliUser, BabiliMessage,
     babiliUtils) {
 
     var BabiliRoom = function BabiliRoom (data) {
@@ -615,7 +615,7 @@
     };
 
     return BabiliRoom;
-  });
+  }]);
 }());
 
 (function () {
@@ -623,7 +623,7 @@
 
   angular.module("babili")
 
-  .factory("babiliSocket", function (babili, socketUrl, $q) {
+  .factory("babiliSocket", ["babili", "socketUrl", "$q", function (babili, socketUrl, $q) {
     var ioSocket;
     var babiliSocket = {
       initialize: function (callback) {
@@ -647,7 +647,7 @@
     };
 
     return babiliSocket;
-  });
+  }]);
 }());
 
 (function () {

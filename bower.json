@@ -1,8 +1,8 @@
 {
   "name": "babili",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "authors": [
-    "Spin42"
+    "Spin42 <info@spin42.com>"
   ],
   "description": "AngularJS framework for Babili.",
   "license": "MIT",
