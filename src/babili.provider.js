@@ -88,7 +88,7 @@
               deferred.reject(err);
             });
           } else {
-            console.log("Babili: /!\\ You should call 'babili.connect' only once.");
+            window.console.log("Babili: /!\\ You should call 'babili.connect' only once.");
             deferred.resolve(babiliUser);
           }
           return deferred.promise;

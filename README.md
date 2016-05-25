@@ -2,18 +2,31 @@
 
 ## Usage
 
-* Install 
+* Install with bower
 
     ```
-    bower install -E babili
+    bower install -E babili-angular
     ```
+
+* Install with npm
+
+    ```
+    npm install -E --save babili-angular
+    ```
+
+* Add the angular dependency to your app module:
+
+  ```
+  var myapp = angular.module('myapp', ['babili']);
+  ```
 
 * Configure endpoints
 
     ```
-    babiliProvider.configure
-      apiUrl    : <api-url>
+    babiliProvider.configure({
+      apiUrl    : <api-url>,
       socketUrl : <socket-url>
+    })
     ```
 
 * Load the user with her opened rooms and the first page of closed rooms
@@ -32,12 +45,18 @@
 
 Install packages:
 
-```
-npm install
-```
+  ```
+  npm install
+  ```
 
 Compile sources:
 
-```
-grunt
-```
+  ```
+  gulp
+  ```
+
+Auto recompile sources:
+
+  ```
+  gulp watch
+  ```

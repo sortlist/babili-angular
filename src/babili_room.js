@@ -146,7 +146,7 @@
           }
         }
       }).then(function (response) {
-        self.users.push(new BabiliUser(response.data.data));
+        self.users.push(new BabiliUser(response.data.data.memberships.user.data));
         return self;
       });
     };

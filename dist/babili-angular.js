@@ -88,7 +88,7 @@
               deferred.reject(err);
             });
           } else {
-            console.log("Babili: /!\\ You should call 'babili.connect' only once.");
+            window.console.log("Babili: /!\\ You should call 'babili.connect' only once.");
             deferred.resolve(babiliUser);
           }
           return deferred.promise;
@@ -560,7 +560,7 @@
           }
         }
       }).then(function (response) {
-        self.users.push(new BabiliUser(response.data.data));
+        self.users.push(new BabiliUser(response.data.data.memberships.user.data));
         return self;
       });
     };
@@ -626,7 +626,7 @@
   .factory("babiliSocket", ["babili", "socketUrl", "$q", function (babili, socketUrl, $q) {
     var ioSocket;
     var babiliSocket = {
-      initialize: function (callback) {
+      initialize: function () {
         ioSocket = io.connect(socketUrl, {
           query    : "token=" + babili.token(),
           forceNew : true

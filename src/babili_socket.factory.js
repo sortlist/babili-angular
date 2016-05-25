@@ -6,7 +6,7 @@
   .factory("babiliSocket", function (babili, socketUrl, $q) {
     var ioSocket;
     var babiliSocket = {
-      initialize: function (callback) {
+      initialize: function () {
         ioSocket = io.connect(socketUrl, {
           query    : "token=" + babili.token(),
           forceNew : true
