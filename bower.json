@@ -14,8 +14,8 @@
     "tests"
   ],
   "main": [
-    "./dist/babili.js",
-    "./dist/babili.min.js"
+    "./dist/babili-angular.js",
+    "./dist/babili-angular.min.js"
    ],
   "dependencies": {
     "angular":          ">=1.4.4",
