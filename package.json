@@ -1,6 +1,6 @@
 {
   "name": "babili-angular",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "description": "Angular framework for Babili.",
   "main": "gulpfile.js",
   "license": "MIT",
