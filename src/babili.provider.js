@@ -35,6 +35,7 @@
           var room          = babiliUser.roomWithId(message.room.id);
           if (room !== undefined && room !== null) {
             scope.$apply(function () {
+              room.addMessage(message);
               if (!babiliUser.hasRoomOpened(room)) {
                 room.unreadMessageCount       = room.unreadMessageCount + 1;
                 babiliUser.unreadMessageCount = babiliUser.unreadMessageCount + 1;
