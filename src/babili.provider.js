@@ -1,11 +1,10 @@
 (function () {
   "use strict";
 
-  var module            = angular.module("babili", ["ng"]);
-  var apiToken          = null;
-  var pingPromise       = null;
-  var babiliUser        = null;
-  var socketInitialized = false;
+  var module      = angular.module("babili", ["ng"]);
+  var apiToken    = null;
+  var pingPromise = null;
+  var babiliUser  = null;
 
   module.provider("babili", function () {
     var self     = this;
@@ -68,16 +67,21 @@
         },
         connect: function (scope, token) {
           var deferred = $q.defer();
-          if (babiliUser === undefined || babiliUser === null) {
-            apiToken = token;
-            injector.get("BabiliMe").get().then(function (_babiliUser) {
-              babiliUser = _babiliUser;
-              var socket = injector.get("babiliSocket").initialize();
+          var connectSocket = function () {
+            if (!injector.get("babiliSocket").socketExist()) {
+              var socket = injector.get("babiliSocket").connect();
               socket.on("new message", handleNewMessage(scope));
               socket.on("connected", function (data) {
                 babiliUser.deviceSessionId = data.deviceSessionId;
               });
-              socketInitialized = true;
+            }
+          };
+
+          if (babiliUser === undefined || babiliUser === null) {
+            apiToken = token;
+            injector.get("BabiliMe").get().then(function (_babiliUser) {
+              babiliUser = _babiliUser;
+              connectSocket();
 
               var ping = function () {
                 babiliUser.updateAliveness();
@@ -89,25 +93,17 @@
               deferred.reject(err);
             });
           } else {
-            window.console.log("Babili: /!\\ You should call 'babili.connect' only once.");
+            connectSocket();
             deferred.resolve(babiliUser);
           }
           return deferred.promise;
         },
         disconnect: function () {
-          var deferred = $q.defer();
-          apiToken     = null;
           $interval.cancel(pingPromise);
-          injector.get("babiliSocket").disconnect().then(function () {
-            deferred.resolve();
-          });
-
-          apiToken          = null;
-          pingPromise       = null;
-          babiliUser        = null;
-          socketInitialized = false;
-
-          return deferred.promise;
+          injector.get("babiliSocket").disconnect();
+          apiToken    = null;
+          pingPromise = null;
+          babiliUser  = null;
         }
       };
     };
