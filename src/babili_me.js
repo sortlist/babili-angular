@@ -222,10 +222,7 @@
       if (!message) {
         deferred.resolve(null);
       } else {
-        BabiliMessage.delete({
-          id: message.id,
-          roomId: message.room.id
-        }).then(function () {
+        BabiliMessage.delete(message).then(function () {
           var room  = self.roomWithId(message.room.id);
           var index = babiliUtils.findIndex(room.messages, function (messageToDelete) {
             return messageToDelete.id === message.id;
