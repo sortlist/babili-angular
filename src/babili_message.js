@@ -49,6 +49,14 @@
       });
     };
 
+    BabiliMessage.delete = function (message) {
+      return $http({
+        method  : "delete",
+        url     : apiUrl + "/user/rooms/" + message.room.id + "/messages/" + message.id,
+        headers : babili.headers()
+      });
+    }
+
     return BabiliMessage;
   });
 }());
