@@ -1,8 +1,8 @@
 {
-  "name": "babili",
-  "version": "0.7.0",
+  "name": "babili-angular",
+  "version": "0.9.1",
   "authors": [
-    "Spin42"
+    "Spin42 <info@spin42.com>"
   ],
   "description": "AngularJS framework for Babili.",
   "license": "MIT",
@@ -14,12 +14,11 @@
     "tests"
   ],
   "main": [
-    "./dist/babili.js",
-    "./dist/babili.min.js"
+    "./dist/babili-angular.js",
+    "./dist/babili-angular.min.js"
    ],
   "dependencies": {
-    "angular":            ">=1.4.4",
-    "angular-resource":   ">=1.4.4",
-    "lodash":             "3.10.0"
+    "angular":          ">=1.4.4",
+    "socket.io-client": ">=1.2.0"
   }
 }

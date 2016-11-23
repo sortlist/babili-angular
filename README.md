@@ -1,21 +1,62 @@
-# babili-angular
+# Babili Angular Library
 
-Angular framework for Babili.
+## Usage
 
-## Requirements
+* Install with bower
 
-* Socket.io
+    ```
+    bower install -E babili-angular
+    ```
 
-## Getting Started
+* Install with npm
+
+    ```
+    npm install -E --save babili-angular
+    ```
+
+* Add the angular dependency to your app module:
+
+  ```
+  var myapp = angular.module('myapp', ['babili']);
+  ```
+
+* Configure endpoints
+
+    ```
+    babiliProvider.configure({
+      apiUrl    : <api-url>,
+      socketUrl : <socket-url>
+    })
+    ```
+
+* Load the user with her opened rooms and the first page of closed rooms
+
+    ```
+    babili.connect(scope, babiliToken).then(function (babiliUser) {
+      $rootScope.babiliUser.fetchOpenedRooms().then(function () {
+        $rootScope.babiliUser.fetchClosedRooms().then(function () {
+          $scope.$apply();
+        });
+      });    
+    });
+    ```
+
+## Develop
 
 Install packages:
 
-```
-npm install
-```
+  ```
+  npm install
+  ```
 
 Compile sources:
 
-```
-grunt
-```
+  ```
+  gulp
+  ```
+
+Auto recompile sources:
+
+  ```
+  gulp watch
+  ```
