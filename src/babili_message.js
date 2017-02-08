@@ -55,7 +55,7 @@
         url     : apiUrl + "/user/rooms/" + message.room.id + "/messages/" + message.id,
         headers : babili.headers()
       });
-    }
+    };
 
     return BabiliMessage;
   });

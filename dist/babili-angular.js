@@ -224,7 +224,11 @@
       if (!self.hasRoomOpened(room)) {
         room.openMembership().then(function () {
           self.openedRooms.push(room);
-          room.markAllMessageAsRead().then(function (readMessageCount) {
+          var lastReadMessageId;
+          if (room.messages.length > 0) {
+            lastReadMessageId = room.messages[room.messages.length - 1].id;
+          }
+          room.markAllMessageAsRead(lastReadMessageId).then(function (readMessageCount) {
             self.unreadMessageCount = Math.max(self.unreadMessageCount - readMessageCount, 0);
           });
           deferred.resolve(room);
@@ -334,10 +338,7 @@
       if (!message) {
         deferred.resolve(null);
       } else {
-        BabiliMessage.delete({
-          id: message.id,
-          roomId: message.room.id
-        }).then(function () {
+        BabiliMessage.delete(message).then(function () {
           var room  = self.roomWithId(message.room.id);
           var index = babiliUtils.findIndex(room.messages, function (messageToDelete) {
             return messageToDelete.id === message.id;
@@ -402,6 +403,14 @@
         return response.data.data.map(function (data) {
           return new BabiliMessage(data);
         });
+      });
+    };
+
+    BabiliMessage.delete = function (message) {
+      return $http({
+        method  : "delete",
+        url     : apiUrl + "/user/rooms/" + message.room.id + "/messages/" + message.id,
+        headers : babili.headers()
       });
     };
 
@@ -581,7 +590,7 @@
       this.messages.push(message);
     };
 
-    BabiliRoom.prototype.markAllMessageAsRead = function () {
+    BabiliRoom.prototype.markAllMessageAsRead = function (lastReadMessageId) {
       var self     = this;
       var deferred = $q.defer();
       if (self.unreadMessageCount > 0) {
@@ -589,7 +598,10 @@
         return $http({
           method  : "PUT",
           url     : apiUrl + "/user/rooms/" + this.id + "/membership/unread-messages",
-          headers : babili.headers()
+          headers : babili.headers(),
+          data    : {
+            lastReadMessageId: lastReadMessageId
+          }
         }).then(function (response) {
           self.unreadMessageCount = 0;
           deferred.resolve(response.readMessageCount);

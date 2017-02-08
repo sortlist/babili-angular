@@ -112,7 +112,11 @@
       if (!self.hasRoomOpened(room)) {
         room.openMembership().then(function () {
           self.openedRooms.push(room);
-          room.markAllMessageAsRead().then(function (readMessageCount) {
+          var lastReadMessageId;
+          if (room.messages.length > 0) {
+            lastReadMessageId = room.messages[room.messages.length - 1].id;
+          }
+          room.markAllMessageAsRead(lastReadMessageId).then(function (readMessageCount) {
             self.unreadMessageCount = Math.max(self.unreadMessageCount - readMessageCount, 0);
           });
           deferred.resolve(room);
