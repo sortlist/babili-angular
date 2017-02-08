@@ -230,7 +230,7 @@
       return deferred.promise;
     };
 
-    BabiliMe.markAllReceivedMessagesAsRead = function (room) {
+    BabiliMe.prototype.markAllReceivedMessagesAsRead = function (room) {
       var self = this;
       return room.markAllReceivedMessagesAsRead().then(function (readMessageCount) {
         self.unreadMessageCount = Math.max(self.unreadMessageCount - readMessageCount, 0);
