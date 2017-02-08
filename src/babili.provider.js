@@ -35,21 +35,16 @@
           if (room !== undefined && room !== null) {
             scope.$apply(function () {
               room.addMessage(message);
-              if (!babiliUser.hasRoomOpened(room)) {
-                room.unreadMessageCount       = room.unreadMessageCount + 1;
-                babiliUser.unreadMessageCount = babiliUser.unreadMessageCount + 1;
-              }
+              room.unreadMessageCount       = room.unreadMessageCount + 1;
+              babiliUser.unreadMessageCount = babiliUser.unreadMessageCount + 1;
             });
           } else {
             injector.get("BabiliRoom").get(message.room.id).then(function (_room) {
               babiliUser.addRoom(_room);
               room = _room;
-              if (!babiliUser.hasRoomOpened(room)) {
-                scope.$apply(function () {
-                room.unreadMessageCount       = room.unreadMessageCount;
+              scope.$apply(function () {
                 babiliUser.unreadMessageCount = babiliUser.unreadMessageCount + 1;
               });
-              }
             });
           }
         };

@@ -170,11 +170,14 @@
       this.messages.push(message);
     };
 
-    BabiliRoom.prototype.markAllMessageAsRead = function (lastReadMessageId) {
+    BabiliRoom.prototype.markAllReceivedMessagesAsRead = function () {
       var self     = this;
       var deferred = $q.defer();
       if (self.unreadMessageCount > 0) {
-
+        var lastReadMessageId;
+        if (self.messages.length > 0) {
+          lastReadMessageId = self.messages[self.messages.length - 1].id;
+        }
         return $http({
           method  : "PUT",
           url     : apiUrl + "/user/rooms/" + this.id + "/membership/unread-messages",

@@ -35,21 +35,16 @@
           if (room !== undefined && room !== null) {
             scope.$apply(function () {
               room.addMessage(message);
-              if (!babiliUser.hasRoomOpened(room)) {
-                room.unreadMessageCount       = room.unreadMessageCount + 1;
-                babiliUser.unreadMessageCount = babiliUser.unreadMessageCount + 1;
-              }
+              room.unreadMessageCount       = room.unreadMessageCount + 1;
+              babiliUser.unreadMessageCount = babiliUser.unreadMessageCount + 1;
             });
           } else {
             injector.get("BabiliRoom").get(message.room.id).then(function (_room) {
               babiliUser.addRoom(_room);
               room = _room;
-              if (!babiliUser.hasRoomOpened(room)) {
-                scope.$apply(function () {
-                room.unreadMessageCount       = room.unreadMessageCount;
+              scope.$apply(function () {
                 babiliUser.unreadMessageCount = babiliUser.unreadMessageCount + 1;
               });
-              }
             });
           }
         };
@@ -224,13 +219,7 @@
       if (!self.hasRoomOpened(room)) {
         room.openMembership().then(function () {
           self.openedRooms.push(room);
-          var lastReadMessageId;
-          if (room.messages.length > 0) {
-            lastReadMessageId = room.messages[room.messages.length - 1].id;
-          }
-          room.markAllMessageAsRead(lastReadMessageId).then(function (readMessageCount) {
-            self.unreadMessageCount = Math.max(self.unreadMessageCount - readMessageCount, 0);
-          });
+          self.markAllReceivedMessagesAsRead(room);
           deferred.resolve(room);
         }).catch(function (err) {
           deferred.reject(err);
@@ -239,6 +228,13 @@
         deferred.resolve();
       }
       return deferred.promise;
+    };
+
+    BabiliMe.markAllReceivedMessagesAsRead = function (room) {
+      var self = this;
+      return room.markAllReceivedMessagesAsRead().then(function (readMessageCount) {
+        self.unreadMessageCount = Math.max(self.unreadMessageCount - readMessageCount, 0);
+      });
     };
 
     BabiliMe.prototype.closeRoom = function (room) {
@@ -590,11 +586,14 @@
       this.messages.push(message);
     };
 
-    BabiliRoom.prototype.markAllMessageAsRead = function (lastReadMessageId) {
+    BabiliRoom.prototype.markAllReceivedMessagesAsRead = function () {
       var self     = this;
       var deferred = $q.defer();
       if (self.unreadMessageCount > 0) {
-
+        var lastReadMessageId;
+        if (self.messages.length > 0) {
+          lastReadMessageId = self.messages[self.messages.length - 1].id;
+        }
         return $http({
           method  : "PUT",
           url     : apiUrl + "/user/rooms/" + this.id + "/membership/unread-messages",
