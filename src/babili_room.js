@@ -178,7 +178,7 @@
         if (self.messages.length > 0) {
           lastReadMessageId = self.messages[self.messages.length - 1].id;
         }
-        return $http({
+        $http({
           method  : "PUT",
           url     : apiUrl + "/user/rooms/" + this.id + "/membership/unread-messages",
           headers : babili.headers(),
@@ -187,7 +187,7 @@
           }
         }).then(function (response) {
           self.unreadMessageCount = 0;
-          deferred.resolve(response.readMessageCount);
+          deferred.resolve(response.data.meta.count);
         });
       } else {
         deferred.resolve(0);
