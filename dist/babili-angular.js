@@ -35,7 +35,7 @@
           var room          = babiliUser.roomWithId(message.room.id);
           if (room !== undefined && room !== null) {
             scope.$apply(function () {
-              if (room.addMessage(message) && !babiliUser.hasRoomOpened(room)) {
+              if (!babiliUser.hasRoomOpened(room)) {
                 room.unreadMessageCount       = room.unreadMessageCount + 1;
                 babiliUser.unreadMessageCount = babiliUser.unreadMessageCount + 1;
               }
@@ -337,10 +337,7 @@
       if (!message) {
         deferred.resolve(null);
       } else {
-        BabiliMessage.delete({
-          id: message.id,
-          roomId: message.room.id
-        }).then(function () {
+        BabiliMessage.delete(message).then(function () {
           var room  = self.roomWithId(message.room.id);
           var index = babiliUtils.findIndex(room.messages, function (messageToDelete) {
             return messageToDelete.id === message.id;
@@ -407,6 +404,14 @@
         });
       });
     };
+
+    BabiliMessage.delete = function (message) {
+      return $http({
+        method  : "delete",
+        url     : apiUrl + "/user/rooms/" + message.room.id + "/messages/" + message.id,
+        headers : babili.headers()
+      });
+    }
 
     return BabiliMessage;
   }]);
