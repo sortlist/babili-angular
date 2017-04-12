@@ -41,6 +41,23 @@
     });
     ```
 
+## Changelog
+
+### Version 0.11.0
+
+Since version 0.11.0 messages are not marked as read automatically once the room has been opened. This allows you to control the reading state in a more granular way. (Messages are still marked as read upon room opening).
+
+For Example, always mark new messages as read in a room:
+
+```
+$scope.room = room;
+$scope.$watchCollection("room.messages", function() {
+  babiliUser.markAllReceivedMessagesAsRead($scope.room)
+};
+```
+
+You might want to do this conditionaly, e.g., only when the tab has the focus or only when the user clicks on the reply input field.
+
 ## Develop
 
 Install packages:
