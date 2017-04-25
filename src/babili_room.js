@@ -9,6 +9,7 @@
     var BabiliRoom = function BabiliRoom (data) {
       this.id       = data.id;
       this.users    = [];
+      this.senders  = [];
       this.messages = [];
 
       if (data.attributes) {
@@ -21,6 +22,12 @@
       if (data.relationships) {
         if (data.relationships.users) {
           this.users = data.relationships.users.data.map(function (data) {
+            return new BabiliUser(data);
+          });
+        }
+
+        if (data.relationships.senders) {
+          this.senders = data.relationships.senders.data.map(function (data) {
             return new BabiliUser(data);
           });
         }
