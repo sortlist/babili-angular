@@ -20,6 +20,27 @@
   var myapp = angular.module('myapp', ['babili']);
   ```
 
+  or in es6 style
+
+  ```
+  import angular     from "angular";
+  import babili      from  "babili-angular";
+
+  const myapp = angular.module("myapp", [babili])
+  .config(babiliConfig);
+
+  /*@ngInject*/
+  function babiliConfig(babiliProvider) {
+    babiliProvider.configure({
+      apiUrl:    process.env.BABILI_API_URL,
+      socketUrl: process.env.BABILI_SOCKET_URL
+    });
+  }
+
+  export default inboxModule;
+
+  ```
+
 * Configure endpoints
 
     ```
